@@ -1,0 +1,63 @@
+{
+    "name": "sh_knx",
+    "version": "1.0.0",
+    "description": "SmartHome KNX Library",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+        "start": "tsc && node dist/knx/webserver/server.js",
+        "server": "tsc && node dist/knx/webserver/server.js",
+        "client": "tsc && node dist/knx/webserver/client.js",
+        "observer": "tsc && node dist/knx/webserver/observer.js",
+        "test": "jest --runInBand --detectOpenHandles --colors --verbose --reporters=default",
+        "test2": "jest --runInBand --detectOpenHandles --colors --verbose --reporters=default",
+        "lint": "npm run prettier && eslint . --ext .ts --fix",
+        "prettier": "prettier --config .prettierrc src/**/*.ts --write",
+        "docs": "typedoc"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+ssh://github.com/smarthomeknx/sh_knx.git"
+    },
+    "keywords": [
+        "smarthomeknx.de",
+        "smarthome",
+        "knx"
+    ],
+    "author": {
+        "name": "Florian Welsch",
+        "email": "sh_knx@smarthomeknx.de",
+        "url": "https://smarthomeknx.de"
+    },
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/smarthomeknx/sh_knx.git"
+    },
+    "homepage": "https://smarthomeknx.github.io/sh_knx/",
+    "devDependencies": {
+        "@types/config": "^0.0.41",
+        "@types/express": "^4.17.11",
+        "@types/jest": "^28.1.4",
+        "@types/js-yaml": "^4.0.0",
+        "@types/node": "^16.11.7",
+        "@types/uuid": "^8.3.0",
+        "@typescript-eslint/eslint-plugin": "^5.30.3",
+        "@typescript-eslint/parser": "^5.30.3",
+        "eslint": "^8.19.0",
+        "eslint-config-prettier": "^8.1.0",
+        "eslint-plugin-prettier": "^4.2.1",
+        "jest": "^28.1.2",
+        "jest-html-reporters": "^3.0.9",
+        "prettier": "^2.2.1",
+        "ts-jest": "^28.0.5",
+        "ts-node": "^10.8.1",
+        "typedoc": "^0.23.4"
+    },
+    "dependencies": {
+        "config": "^3.3.6",
+        "express": "^4.17.1",
+        "js-yaml": "^4.1.0",
+        "uuid": "^8.3.2",
+        "winston": "^3.3.3"
+    }
+}
