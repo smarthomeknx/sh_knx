@@ -33,5 +33,12 @@ export enum MessageType {
   DISCONNECT_RESPONSE
 }
 
+export enum ConnectionType {
+  KNXnetTunneling,
+  KNXnetRouting,
+  USB,
+  EiblibIP
+}
+
 export const HEXer = 0x47;
 //export const X_CLIENT_PORT = "C0A8";

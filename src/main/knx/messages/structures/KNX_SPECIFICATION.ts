@@ -3,6 +3,11 @@
 /* *********************************** */
 export const PROTOCOL_VERSION = 0x10;
 
+export const IPCONSTANTS = {
+  KNXnetIPPort: 3671,
+  KNXnetIPSystemSetupMulticastAddress: "224.0.23.12"
+};
+
 export enum SERVICE_TYPE {
   UNDEFINED = 0x0000,
   SEARCH_REQUEST = 0x0201,
@@ -15,7 +20,14 @@ export enum SERVICE_TYPE {
   CONNECTIONSTATE_RESPONSE = 0x0208,
   DISCONNECT_REQUEST = 0x0209,
   DISCONNECT_RESPONSE = 0x020a,
-  NOT_DOCUMENTED_IN_KNX = 0x020b
+  NOT_DOCUMENTED_IN_KNX = 0x020b,
+  // ROUTING_INDICATION
+  DEVICE_CONFIGURATION_REQUEST = 0x0310,
+  DEVICE_CONFIGURATION_ACK = 0x0311,
+  TUNNELING_REQUEST = 0x0420,
+  TUNNELING_ACK = 0x0421,
+  ROUTING_INDICATION = 0x0530,
+  ROUTING_LOST_MESSAGE = 0x531
 }
 
 // Service type number ranges
@@ -74,7 +86,6 @@ export enum KNX_DEVICE_STATUS {
   PROG_MODE_OFF = 0x00
 }
 
-// COPY AND PASTED CODE
 const CONNECTION_TYPE = {
   DEVICE_MGMT_CONNECTION: 0x03,
   TUNNEL_CONNECTION: 0x04,
@@ -83,8 +94,7 @@ const CONNECTION_TYPE = {
   OBJECT_SERVER_CONNECTION: 0x08
 };
 
-//https://github.com/calimero-project/calimero-core/blob/master/src/tuwien/auto/calimero/knxnetip/servicetype/ErrorCodes.java
-const RESPONSECODE = {
+const RESPONSE_CODE = {
   NO_ERROR: 0x00, // E_NO_ERROR - The connection was established succesfully
   E_HOST_PROTOCOL_TYPE: 0x01,
   E_VERSION_NOT_SUPPORTED: 0x02,
@@ -99,7 +109,7 @@ const RESPONSECODE = {
   E_TUNNELING_LAYER: 0x29
 };
 
-const MESSAGECODES = {
+const MESSAGE_CODE = {
   "L_Raw.req": 0x10,
   "L_Data.req": 0x11,
   "L_Poll_Data.req": 0x13,
@@ -112,7 +122,7 @@ const MESSAGECODES = {
   "ETS.Dummy1": 0xc1 // UNKNOWN: see https://bitbucket.org/ekarak/knx.js/issues/23
 };
 
-const APCICODES = [
+const APCI_CODE = [
   "GroupValue_Read",
   "GroupValue_Response",
   "GroupValue_Write",
