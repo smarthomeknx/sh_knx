@@ -77,33 +77,4 @@ export default abstract class UDBDevice<Type extends UDPDeviceSettings> extends 
       throw error;
     }
   }
-
-  // buildSentCallback(buffer: Buffer, serviceType: SERVICE_TYPE): SentCallbackType {
-  //   return (error: Error | null, bytes: number) => {
-  //     const udpMessage: UDPMessage = {
-  //       direction: "INCOMING",
-  //       remote: { address: this.settings.multicast?.ipAddress, port: this.settings.multicast?.ipPort },
-  //       buffer: buffer,
-  //       serviceType: SERVICE_TYPE[serviceType]
-  //     };
-  //     if (error) {
-  //       this.udpLogger.warn("sent error: %s", error, { udpMessage: udpMessage });
-  //       throw error;
-  //     } else {
-  //       this.udpLogger.info("sent success: %s bytes", bytes, { udpMessage: udpMessage });
-  //     }
-  //     // MESSAGE_LOG.info(
-  //     //   "SENT MESSAGE TO %s:%s TYPE %s: %s\n%s",
-  //     //   this.settings.multicastIPAddress,
-  //     //   this.settings.multicastIPPort,
-  //     //   SERVICE_TYPE[message.serviceType],
-  //     //   logBuffer(buffer),
-  //     //   yaml.dump(message.toJSON(false))
-  //     // );
-  //     // console.log(
-  //     //   `SENT to ${this.settings.multicastIPAddress}:${this.settings.multicastIPPort} MSG: ${buffer.toString("hex")}`
-  //     // );
-  //     //client.close();
-  //   };
-  // }
 }

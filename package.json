@@ -5,10 +5,11 @@
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "scripts": {
-        "start": "tsc && node dist/knx/webserver/server.js",
+        "start": "tsc && node dist/knx/webserver/monitor.js",
         "server": "tsc && node dist/knx/webserver/server.js",
         "client": "tsc && node dist/knx/webserver/client.js",
         "observer": "tsc && node dist/knx/webserver/observer.js",
+        "monitor": "tsc && node dist/knx/webserver/monitor.js",
         "test": "jest --runInBand --detectOpenHandles --colors --verbose --reporters=default",
         "test2": "jest --runInBand --detectOpenHandles --colors --verbose --reporters=default",
         "lint": "npm run prettier && eslint . --ext .ts --fix",

@@ -75,6 +75,14 @@ export default class MessageHandler {
     }
   }
 
+  addAllCallback(callback: MessageHandlerCallback): void {
+    if (this.hasHighlanderCallback()) {
+      throw Error("Can't add typed callback, because the highlander callback is set");
+    } else {
+      this.eventEmitter.on(SPECIAL_TYPE.ALL, callback);
+    }
+  }
+
   addHighlanderCallback(callback: MessageHandlerCallback): void {
     const registeredEvents = this.eventEmitter.eventNames();
     if (registeredEvents.length > 0) {
