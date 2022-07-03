@@ -48,5 +48,6 @@ export default class SearchRequest extends Message {
     super.setDefaultValues();
     this.headerStructure.data.ServiceType = MESSAGE_TYPE;
     this.hpaiStructure.data.ProtocolCode = knxSpec.HOST_PROTOCOL_CODES.IPV4_UDP;
+    this.hpaiStructure.data.Port = knxSpec.KNXIP_CONSTANTS.KNX_NET_IP_Port;
   }
 }

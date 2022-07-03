@@ -1,13 +1,17 @@
-import BusMonitor from "../devices/BusMonitor";
+import IPClient from "../devices/IPClient";
 import { UDPDeviceSettings } from "../devices/UDPDevice";
 import * as constants from "../utils/constants";
+import * as knxSpec from "../messages/structures/KNX_SPECIFICATION";
 
 // TODO Config configurable
 const BUS_MONITOR_CONFIG: UDPDeviceSettings = {
-  type: typeof BusMonitor,
+  type: typeof IPClient,
   ipAddress: constants.CLIENT_IP_ADDRESS,
-  ipPort: constants.CLIENT_PORT,
-  multicast: { ipAddress: constants.MULTICAST_IP_ADDRESS, ipPort: constants.SERVER_PORT },
+  ipPort: knxSpec.KNXIP_CONSTANTS.KNX_NET_IP_Port,
+  multicast: {
+    ipAddress: knxSpec.KNXIP_CONSTANTS.KNX_NET_IP_SETUP_MULTICAST_ADDRESS,
+    ipPort: knxSpec.KNXIP_CONSTANTS.KNX_NET_IP_Port
+  },
   knxIndividualAddress: "255.255",
   projectInstallationID: "00.01",
   knxSerialNumber: constants.SERVER_SERIAL_NUMBER,
@@ -15,11 +19,11 @@ const BUS_MONITOR_CONFIG: UDPDeviceSettings = {
   friendlyName: constants.SERVER_FRIENDLY_NAME
 };
 
-const busMonitor = new BusMonitor("BUS_MONITOR", BUS_MONITOR_CONFIG);
+const busMonitor = new IPClient("BUS_MONITOR", BUS_MONITOR_CONFIG);
 (async () => {
   try {
     await busMonitor.powerOn();
-    await busMonitor.triggerSearchRequest();
+    await busMonitor.discover();
   } catch (e) {
     console.log("Message sent error");
   }

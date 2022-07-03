@@ -3,9 +3,14 @@
 /* *********************************** */
 export const PROTOCOL_VERSION = 0x10;
 
-export const IPCONSTANTS = {
-  KNXnetIPPort: 3671,
-  KNXnetIPSystemSetupMulticastAddress: "224.0.23.12"
+export const COMMON_CONSTANTS = {
+  KNXNETIP_VERSION_10: 0x10, // Identifier for KNXnet/IP protocol version 1.0
+  HEADER_SIZE_10: 0x06 // Constant size of KNXnet/IP header as defined in protocol version 1.0
+};
+
+export const KNXIP_CONSTANTS = {
+  KNX_NET_IP_Port: 3671,
+  KNX_NET_IP_SETUP_MULTICAST_ADDRESS: "224.0.23.12"
 };
 
 export enum SERVICE_TYPE {
