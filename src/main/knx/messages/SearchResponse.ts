@@ -1,6 +1,9 @@
 /**
  * Source: KNX Standard - https://my.knx.org/en/shop/knx-specifications - Version: 2.1 - 2021 - 04 - 08
+ * KNX Software/The KNX Standard v2.1/The KNX Standard v2.1/03 Volume 3 System Specifications/03_08_02 Core v01.05.01 AS.pdf
+ * 8.8.2 SEARCH_RESPONSE
  *
+ * EXAMPLE
  *        +-------------------------------+
  *  1     |              06h              |    header size
  *        +-------------------------------+
@@ -125,8 +128,6 @@ import DIBHardwareStructure from "./structures/DIBHardwareStructure";
 import DIBSupportedServiceFamilyStructure from "./structures/DIBSupportServiceFamilyStructure";
 
 const MESSAGE_TYPE = knxSpec.SERVICE_TYPE.SEARCH_RESPONSE;
-// EXAMPLE //06100202004e08017f0000010e57 36010200ffff000100fa00000001e000170c060606030e474b4e58205669727475616c20000000000000000000000000000000000000 0a020201030104010501
-// CURRENT   00000202004e0001c0a8018a0e57 36000000ffff0001000000000000e017000c060606030e47534d415254484f4d454b4e582e4445000000000000000000000000000000
 
 export default class SearchResponse extends Message {
   readonly dibHardwareStructure: DIBHardwareStructure;
