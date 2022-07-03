@@ -45,7 +45,7 @@ export default class MessageHandler {
       const response: UDPResponse = new UDPResponse(request, this.udpSocket);
       const serviceType = request.identifyMessage();
 
-      this.deviceLogger.debug("RECEIVED MESSAGE: %s", logBuffer(message), {
+      this.deviceLogger.debug("RECEIVED MESSAGE \n(%s Bytes): %s", message.byteLength, logBuffer(message), {
         udpMessage: udpMessage
       });
 

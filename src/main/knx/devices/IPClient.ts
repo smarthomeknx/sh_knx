@@ -8,10 +8,11 @@ import UDPMessageHandler, { SPECIAL_TYPE } from "../messages/utils/UDPMessageHan
 import UDPResponse from "../messages/UDPResponse";
 import UDPDevice, { UDPDeviceSettings } from "./UDPDevice";
 
-const SEARCH_TIMEOUT = 1000;
+const SEARCH_TIMEOUT = 100000;
 
 export default class IPClient extends UDPDevice<UDPDeviceSettings> {
   pendingSearchResponseSince = -1;
+  searchResponses: SearchResponse[] = [];
 
   constructor(id: string, settings: UDPDeviceSettings) {
     super(id, settings);
@@ -40,25 +41,8 @@ export default class IPClient extends UDPDevice<UDPDeviceSettings> {
 
     const incomingSearchResponse = new SearchResponse();
     UDPMessageHandler.setValuesFromBuffer(request, incomingSearchResponse);
-    // "Read message: %s", yaml.dump(message.toJSON(false));
-    // TRACE.debug("SearchResponse: \n%s", yaml.dump(incomingSearchResponse.toJSON(false)));
-    TRACE.debug(
-      `SearchResponse: \n${incomingSearchResponse.toYAML(false)}`
-      // yaml.dump(JSON.parse(JSON.stringify(incomingSearchResponse.toJSON(false).structures)))
-    );
-  };
-
-  // using arrow function to keep the class as this, as EventEmitter would have exchanged the this...
-  onSearchRequest = (request: UDPRequest, response: UDPResponse): void => {
-    request.log.debug("Handle SearchRequest");
-
-    const searchRequest = new SearchRequest();
-    UDPMessageHandler.setValuesFromBuffer(request, searchRequest);
-
-    const answer = new SearchResponse();
-    answer.setDefaultValues();
-    this.fillDeviceInformationBlockStructure(answer.dibHardwareStructure);
-    response.send(answer);
+    TRACE.debug(`SearchResponse: \n${incomingSearchResponse.toYAML(false)}`);
+    this.searchResponses.push(incomingSearchResponse);
   };
 
   async triggerSearchRequest(): Promise<void> {
