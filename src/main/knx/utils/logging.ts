@@ -86,6 +86,11 @@ export const LOG = winston.createLogger({
   format: combine(splat(), simple())
 });
 
+export const TRACE = winston.createLogger({
+  level: "debug",
+  format: combine(splat(), simple())
+});
+
 const UDP_REQUEST_LOG = winston.createLogger({
   level: "debug",
   format: combine(splat(), simple(), label({ label: "UDP_REQUEST_LOG" }), timestamp(), requestLogCSVFormat)
@@ -132,6 +137,13 @@ if (process.env.NODE_ENV !== "production") {
     })
   );
 
+  TRACE.add(
+    new winston.transports.Console({
+      level: "debug",
+      format: combine(colorize(), splat(), simple())
+    })
+  );
+
   UDP_REQUEST_LOG.add(
     new winston.transports.Console({
       level: "info",
@@ -168,6 +180,13 @@ if (process.env.NODE_ENV !== "production") {
     new winston.transports.File({
       filename: "./logs/error.log",
       level: "error"
+    })
+  );
+
+  TRACE.add(
+    new winston.transports.File({
+      filename: "./logs/trace.log",
+      level: "debug"
     })
   );
 

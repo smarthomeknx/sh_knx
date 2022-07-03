@@ -1,5 +1,5 @@
 import dgram from "dgram";
-import { STATUS_LOG } from "../utils/logging";
+import { STATUS_LOG, TRACE } from "../utils/logging";
 import { SERVICE_TYPE } from "../messages/structures/KNX_SPECIFICATION";
 import UDPRequest from "../messages/UDPRequest";
 import SearchRequest from "../messages/SearchRequest";
@@ -19,32 +19,33 @@ export default class IPClient extends UDPDevice<UDPDeviceSettings> {
 
   async powerOn(): Promise<void> {
     this.messageHandler.addTypedCallback(SERVICE_TYPE.SEARCH_RESPONSE, this.onSearchResponse);
-    this.messageHandler.addTypedCallback(SERVICE_TYPE.SEARCH_REQUEST, this.onSearchRequest); // should be ignored
-    this.messageHandler.addAllCallback(this.onAnyResponse);
     await this.startListener();
   }
-
-  onAnyResponse = (request: UDPRequest, response: UDPResponse): void => {
-    request.log.debug("Handle any response");
-
-    //const incomingSearchResponse = new SearchResponse();
-    //UDPMessageHandler.setValuesFromBuffer(request, incomingSearchResponse);
-  };
 
   onSearchResponse = (request: UDPRequest, response: UDPResponse): void => {
     request.log.debug("Handle SearchResponse");
     if (this.pendingSearchResponseSince < 0) {
       request.log.debug("Ignoring SearchResponse because no pending search request from this device");
+      return;
     }
 
-    if (this.pendingSearchResponseSince + SEARCH_TIMEOUT - Date.now() < 0) {
+    const responseDelay = Date.now() - this.pendingSearchResponseSince;
+    TRACE.debug(`SearchResponse arrived ${responseDelay} ms after request`);
+    if (responseDelay > SEARCH_TIMEOUT) {
       request.log.info(
         `Ignoring SearchResponse because pending search request from this device was timed out after ${SEARCH_TIMEOUT}`
       );
+      return;
     }
 
     const incomingSearchResponse = new SearchResponse();
     UDPMessageHandler.setValuesFromBuffer(request, incomingSearchResponse);
+    // "Read message: %s", yaml.dump(message.toJSON(false));
+    // TRACE.debug("SearchResponse: \n%s", yaml.dump(incomingSearchResponse.toJSON(false)));
+    TRACE.debug(
+      `SearchResponse: \n${incomingSearchResponse.toYAML(false)}`
+      // yaml.dump(JSON.parse(JSON.stringify(incomingSearchResponse.toJSON(false).structures)))
+    );
   };
 
   // using arrow function to keep the class as this, as EventEmitter would have exchanged the this...
@@ -115,5 +116,7 @@ export default class IPClient extends UDPDevice<UDPDeviceSettings> {
     // send description request
   };
 
-  connect = () => {};
+  connect = () => {
+    // connect
+  };
 }

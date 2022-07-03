@@ -25,7 +25,8 @@ export default class UDPResponse {
       this.targetPort,
       SERVICE_TYPE[message.serviceType],
       logBuffer(buffer),
-      yaml.dump(message.toJSON(false))
+      //yaml.dump(message.toJSON(false))
+      message.toYAML(false)
     );
   }
 }

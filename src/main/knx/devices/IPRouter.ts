@@ -1,5 +1,5 @@
 import dgram from "dgram";
-import { STATUS_LOG } from "../utils/logging";
+import { STATUS_LOG, TRACE } from "../utils/logging";
 import { SERVICE_TYPE } from "../messages/structures/KNX_SPECIFICATION";
 import UDPRequest from "../messages/UDPRequest";
 import SearchRequest from "../messages/SearchRequest";
@@ -24,6 +24,7 @@ export default class IPRouter extends UDPDevice<UDPDeviceSettings> {
 
     const searchRequest = new SearchRequest();
     UDPMessageHandler.setValuesFromBuffer(request, searchRequest);
+    // TRACE.debug("Drop: %s", searchRequest.toYAML(false));
 
     const answer = new SearchResponse();
     answer.setDefaultValues();
