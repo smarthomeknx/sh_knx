@@ -64,6 +64,7 @@ export default class IPClient extends UDPDevice<UDPDeviceSettings> {
     const message: SearchRequest = new SearchRequest();
     message.setDefaultValues();
     message.hpaiStructure.data.IPAddress = this.settings.ipAddress;
+    message.hpaiStructure.data.Port = this.settings.ipPort;
     // don't change the port, seems 3671 is default from KNX: message.hpaiStructure.data.Port = this.settings.ipPort;
 
     const buffer: Buffer = message.toBuffer();

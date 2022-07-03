@@ -27,20 +27,27 @@ export class Message {
 
   toBuffer(): Buffer {
     const buffers = [];
-    let size = 0;
-    for (const structure of this.structures) {
-      const buffer: Buffer = structure.toBuffer();
-      size += buffer.length;
-      buffers.push(buffer);
-    }
+    // do avoid creating buffers twices, the size gets calculated in parallel and the header
+    // is transformed to buffer as last (when the TotalSize was set).
+
+    let size = this.headerStructure.data.StructureLength || 0;
+
+    const hpaiBuffer = this.hpaiStructure.toBuffer();
+    size += hpaiBuffer.length;
+    this.headerStructure.data.TotalSize = size;
+    buffers.push(this.headerStructure.toBuffer(), hpaiBuffer);
+
+    if (this.structures.length > 2)
+      throw Error("Not implemented: toBuffer for additioanl structures - only Header and HPAI are buffered!");
+
+    // for (const structure of this.structures) {
+    //   const buffer: Buffer = structure.toBuffer();
+    //   size += buffer.length;
+    //   buffers.push(buffer);
+    // }
 
     const result = Buffer.concat(buffers);
     return result; //.toString("hex");
-    // const header = createHeader(Message.SEARCH_RESPONSE);
-    // const hpai = createHPAI(HOST_PROTOCOL_CODES.IPV4_UDP, constants.SERVER_IP_ADDRESS, constants.SERVER_PORT);
-    // const deviceIB = createDeviceIB();
-
-    // return Buffer.concat([header, hpai, deviceIB]).toString("hex");
   }
 
   fromBuffer(buffer: Buffer): number {

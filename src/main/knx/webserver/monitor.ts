@@ -7,7 +7,7 @@ import * as knxSpec from "../messages/structures/KNX_SPECIFICATION";
 const BUS_MONITOR_CONFIG: UDPDeviceSettings = {
   type: typeof IPClient,
   ipAddress: constants.CLIENT_IP_ADDRESS,
-  ipPort: knxSpec.KNXIP_CONSTANTS.KNX_NET_IP_Port,
+  ipPort: constants.CLIENT_PORT,
   multicast: {
     ipAddress: knxSpec.KNXIP_CONSTANTS.KNX_NET_IP_SETUP_MULTICAST_ADDRESS,
     ipPort: knxSpec.KNXIP_CONSTANTS.KNX_NET_IP_Port
