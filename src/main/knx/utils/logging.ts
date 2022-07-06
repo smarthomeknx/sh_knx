@@ -11,6 +11,16 @@ export interface RequestLogData {
   serviceType: string;
 }
 
+export interface DeviceLogData {
+  device: {
+    id: string;
+    name: string;
+    ipAddress: string;
+    port: number;
+  };
+  deviceType: string;
+}
+
 interface RequestLogCSVLine {
   timestamp: string;
   label: string;
@@ -118,6 +128,15 @@ export const WEBSERVER_LOG = winston.createLogger({
   level: "debug",
   format: combine(timestamp(), label({ label: "SERVER_LOG" }), splat(), simple(), serverLogFormat)
 });
+
+// export const DEVICE_LOG = winston.createLogger({
+//   level: "debug",
+//   format: combine(timestamp(), label({ label: "SERVER_LOG" }), splat(), simple(), deviceLogFormat)
+// });
+
+// export const createDeviceLogger = (logData: Partial<DeviceLogData>): winston.Logger => {
+//   return DEVICE_LOG.child({ deviceData: logData });
+// };
 
 const requestLogFormat = printf(({ level, message, label, timestamp, correlationId }) => {
   const correlationIdPart = correlationId ? `ID: ${correlationId} ` : "";

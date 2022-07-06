@@ -7,10 +7,15 @@ import SearchResponse from "../messages/SearchResponse";
 import UDPMessageHandler, { SPECIAL_TYPE } from "../messages/utils/UDPMessageHandler";
 import UDPResponse from "../messages/UDPResponse";
 import UDPDevice, { UDPDeviceSettings } from "./UDPDevice";
+import DescriptionRequest from "../messages/DescriptionRequest";
+import DescriptionResponse from "../messages/DescriptionResponse";
+import IPServer from "./IPServer";
+//import winston from "winston";
 
 const SEARCH_TIMEOUT = 100000;
 
 export default class IPClient extends UDPDevice<UDPDeviceSettings> {
+  //log: winston.Logger;
   pendingSearchResponseSince = -1;
   searchResponses: SearchResponse[] = [];
 
@@ -20,6 +25,7 @@ export default class IPClient extends UDPDevice<UDPDeviceSettings> {
 
   async powerOn(): Promise<void> {
     this.messageHandler.addTypedCallback(SERVICE_TYPE.SEARCH_RESPONSE, this.onSearchResponse);
+    this.messageHandler.addTypedCallback(SERVICE_TYPE.DESCRIPTION_RESPONSE, this.onDescriptionResponse);
     await this.startListener();
   }
 
@@ -42,11 +48,59 @@ export default class IPClient extends UDPDevice<UDPDeviceSettings> {
     const incomingSearchResponse = new SearchResponse();
     UDPMessageHandler.setValuesFromBuffer(request, incomingSearchResponse);
     TRACE.debug(`SearchResponse: \n${incomingSearchResponse.toYAML(false)}`);
-    this.searchResponses.push(incomingSearchResponse);
+    //this.searchResponses.push(incomingSearchResponse);
+    this.udpLogger.info(
+      "Received search response from %s:%s",
+      incomingSearchResponse.hpaiStructure.data.IPAddress,
+      incomingSearchResponse.hpaiStructure.data.Port
+    );
+    // Start
+    this.requestServerDescription(incomingSearchResponse);
+  };
+
+  onDescriptionResponse = (request: UDPRequest, response: UDPResponse): void => {
+    request.log.debug("Handle DescriptionResponse");
+    // if (this.pendingSearchResponseSince < 0) {
+    //   request.log.debug("Ignoring SearchResponse because no pending search request from this device");
+    //   return;
+    // }
+
+    // const responseDelay = Date.now() - this.pendingSearchResponseSince;
+    // TRACE.debug(`SearchResponse arrived ${responseDelay} ms after request`);
+    // if (responseDelay > SEARCH_TIMEOUT) {
+    //   request.log.info(
+    //     `Ignoring SearchResponse because pending search request from this device was timed out after ${SEARCH_TIMEOUT}`
+    //   );
+    //   return;
+    // }
+
+    const incomingDescriptionResponse = new DescriptionResponse();
+    UDPMessageHandler.setValuesFromBuffer(request, incomingDescriptionResponse);
+    TRACE.debug(`DescriptionResponse: \n${incomingDescriptionResponse.toYAML(false)}`);
+    //this.searchResponses.push(incomingSearchResponse);
+    this.udpLogger.info(
+      "Received description response from %s:%s",
+      incomingDescriptionResponse.hpaiStructure.data.IPAddress,
+      incomingDescriptionResponse.hpaiStructure.data.Port
+    );
+    // Connect?
+    //this.requestServerDescription(incomingSearchResponse);
   };
 
   async triggerSearchRequest(): Promise<void> {
     const message: SearchRequest = new SearchRequest();
+    message.setDefaultValues();
+    message.hpaiStructure.data.IPAddress = this.settings.ipAddress;
+    message.hpaiStructure.data.Port = this.settings.ipPort;
+    // don't change the port, seems 3671 is default from KNX: message.hpaiStructure.data.Port = this.settings.ipPort;
+
+    const buffer: Buffer = message.toBuffer();
+    if (!this.settings.multicast) throw Error("Can't sent search request without multicast settings ");
+    await this.send(message.serviceType, buffer, this.settings.multicast.ipPort, this.settings.multicast.ipAddress);
+  }
+
+  async triggerDescriptionRequest(): Promise<void> {
+    const message: DescriptionRequest = new DescriptionRequest();
     message.setDefaultValues();
     message.hpaiStructure.data.IPAddress = this.settings.ipAddress;
     message.hpaiStructure.data.Port = this.settings.ipPort;
@@ -73,12 +127,16 @@ export default class IPClient extends UDPDevice<UDPDeviceSettings> {
     // triggerSearchRequest
     await this.triggerSearchRequest();
     this.pendingSearchResponseSince = Date.now();
+    // set timeout to ignore search responses after the SEARCH_TIMEOUT
+    setTimeout(() => {
+      this.pendingSearchResponseSince = -1;
+    }, SEARCH_TIMEOUT);
+    this.udpLogger.info("Trigger search request with timeout %s", SEARCH_TIMEOUT);
     // check if answer or timeout
-    //
   }
 
   /**
-   * After a server is discovered the client should sent a
+   * After a server is discovered, the client should sent a
    * client               server
    *   DESCRIPTION_RQUEST -> (thorugh unicast or point to point)
    *   <- DESCRIPTION_RESPONSE
@@ -96,11 +154,26 @@ export default class IPClient extends UDPDevice<UDPDeviceSettings> {
    * is that the server may support connections to multiple KNX Subnetworks.
    *
    */
-  describe = () => {
+  async requestServerDescription(searchResponse: SearchResponse): Promise<IPServer> {
     // send description request
-  };
+    await this.triggerDescriptionRequest();
+    return new IPServer("fake", {
+      type: "IPRouter",
+      ipAddress: "192.168.1.138",
+      ipPort: 3671,
+      multicast: {
+        ipAddress: "224.0.23.12",
+        ipPort: 3671
+      },
+      knxIndividualAddress: "255.255",
+      projectInstallationID: "00.01",
+      knxSerialNumber: "0.250.0.0.0.1",
+      macAddress: "06.06.06.03.14.71",
+      friendlyName: "SMARTHOMEKNX.DE"
+    });
+  }
 
-  connect = () => {
+  async connect(server: IPServer) {
     // connect
-  };
+  }
 }

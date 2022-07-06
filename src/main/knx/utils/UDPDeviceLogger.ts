@@ -48,37 +48,43 @@ const udpDeviceLogCSVFormat = printf(({ level, message, label, timestamp, udpDev
 
 const udpDeviceLogConsoleFormat = printf(({ level, message, label, timestamp, udpDeviceSettings, udpMessage }) => {
   const device = udpDeviceSettings as Partial<UDPDeviceSettings>;
-  const udpMsg = udpMessage as Partial<UDPMessage>;
-  // const logLine: UDPLogCSVLine = {
-  //   timestamp: toCSVString(timestamp),
-  //   label: toCSVString(label),
-  //   level: toCSVString(level),
-  //   socketIPAddressPart: toCSVString(device.ipAddress),
-  //   socketIPPortPart: toCSVString(device.ipPort),
-  const remoteIPAddressPart = udpMsg.remote ? udpMsg.remote.address : "?";
-  const remoteIPPortPart = udpMsg.remote ? udpMsg.remote.port : "?";
-  //   direction: toCSVString(udpMsg.direction),
-  //   serviceTypePart: toCSVString(udpMsg.serviceType),
-  //   message: toCSVString(message)
-  // };
-  // let line = toCSVLine(logLine);
-  // if (udpMsg.buffer) {
-  //   const buffer = logBuffer(udpMsg.buffer, 0x10);
-  //   line += buffer;
-  // }
+  if (udpMessage) {
+    const udpMsg = udpMessage as Partial<UDPMessage>;
+    // const logLine: UDPLogCSVLine = {
+    //   timestamp: toCSVString(timestamp),
+    //   label: toCSVString(label),
+    //   level: toCSVString(level),
+    //   socketIPAddressPart: toCSVString(device.ipAddress),
+    //   socketIPPortPart: toCSVString(device.ipPort),
+    const remoteIPAddressPart = udpMsg.remote ? udpMsg.remote.address : "?";
+    const remoteIPPortPart = udpMsg.remote ? udpMsg.remote.port : "?";
+    //   direction: toCSVString(udpMsg.direction),
+    //   serviceTypePart: toCSVString(udpMsg.serviceType),
+    //   message: toCSVString(message)
+    // };
+    // let line = toCSVLine(logLine);
+    // if (udpMsg.buffer) {
+    //   const buffer = logBuffer(udpMsg.buffer, 0x10);
+    //   line += buffer;
+    // }
 
-  let directionPart = udpMsg.direction;
-  switch (udpMsg.direction) {
-    case "INCOMING":
-      directionPart += " FROM ";
-      break;
-    case "OUTGOING":
-      directionPart += " TO ";
-      break;
+    let directionPart = udpMsg.direction;
+    switch (udpMsg.direction) {
+      case "INCOMING":
+        directionPart += " FROM ";
+        break;
+      case "OUTGOING":
+        directionPart += " TO ";
+        break;
+    }
+    return `${timestamp} ${level} - ${device.friendlyName || "UNKNOWN"}(${device.ipAddress} ${device.ipPort}) -  ${
+      udpMsg.serviceType
+    } ${directionPart} ${remoteIPAddressPart}:${remoteIPPortPart}: ${message}`;
+  } else {
+    return `${timestamp} ${level} - ${device.friendlyName || "UNKNOWN"}(${device.ipAddress} ${
+      device.ipPort
+    }): ${message}`;
   }
-  return `${timestamp} ${level} - ${device.friendlyName || "UNKNOWN"}(${device.ipAddress} ${device.ipPort}) -  ${
-    udpMsg.serviceType
-  } ${directionPart} ${remoteIPAddressPart}:${remoteIPPortPart}: ${message}`;
 });
 
 const toCSVLine = (logData: UDPLogCSVLine): string => {
