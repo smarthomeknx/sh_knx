@@ -4,16 +4,17 @@ import { createRequestLogger, RequestLogData } from "../utils/logging";
 import { v4 as uuidv4 } from "uuid";
 import HeaderStructure from "./structures/HeaderStructure";
 import * as knxSpec from "./structures/KNX_SPECIFICATION";
+import { RemoteInfo } from "../utils/types";
 
 export default class TCPRequest {
   readonly id: string;
   requestLogData: Partial<RequestLogData>;
   log: Logger;
-  constructor(readonly message: Buffer, readonly info: net.Server) {
+  constructor(readonly message: Buffer, readonly info: RemoteInfo) {
     this.id = uuidv4();
     this.requestLogData = {
       messageID: this.id,
-      source: { ipAddress: info.address, port: info.port },
+      source: { ipAddress: info.host, port: info.port },
       serviceType: "NOT IDENTIFIED"
     };
     this.log = createRequestLogger(this.requestLogData);
