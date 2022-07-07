@@ -9,8 +9,9 @@ import TCPRequest from "../TCPRequest";
 import TCPResponse from "../TCPResponse";
 import { Message } from "./Message";
 
-import TCPDevice, { TCPDeviceSettings } from "../../devices/TCPDevice";
-import { TCPMessage } from "../../utils/TCPDeviceLogger";
+import TCPDevice, { TCPClientSettings } from "../../devices/TCPClient";
+import { TCPMessage } from "../../utils/TCPClientLogger";
+import { RemoteInfo } from "../../utils/types";
 
 type MessageHandlerCallback = (request: TCPRequest, response: TCPResponse) => void;
 
@@ -23,7 +24,7 @@ export type CALLBACK_TYPE = SERVICE_TYPE | SPECIAL_TYPE;
 export default class MessageHandler {
   readonly eventEmitter: EventEmitter;
 
-  constructor(readonly tcpSocket: net.Socket, readonly receivingDevice: TCPDevice<TCPDeviceSettings>) {
+  constructor(readonly tcpSocket: net.Socket, readonly receivingDevice: TCPDevice<TCPClientSettings>) {
     tcpSocket.on("message", this.tcpHandleIncomingMessage);
     //udpSocket.on("message", this.udpHandleIncomingMessage);
     this.eventEmitter = new EventEmitter().setMaxListeners(1); // one listener per Event is supported in here by know
@@ -33,7 +34,7 @@ export default class MessageHandler {
     return this.receivingDevice.tcpLogger;
   }
 
-  tcpHandleIncomingMessage = (message: Buffer, remoteInfo: net.Server): void => {
+  tcpHandleIncomingMessage = (message: Buffer, remoteInfo: RemoteInfo): void => {
     const tcpMessage: TCPMessage = {
       direction: "INCOMING",
       remote: remoteInfo,
