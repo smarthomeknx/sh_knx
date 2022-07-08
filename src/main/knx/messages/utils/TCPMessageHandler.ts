@@ -10,7 +10,7 @@ import TCPResponse from "../TCPResponse";
 import { Message } from "./Message";
 
 import TCPDevice, { TCPDeviceSettings } from "../../devices/base/TCPDevice";
-import { TCPMessage } from "../../utils/TCPClientLogger";
+import { TCPMessage } from "../../utils/TCPDeviceLogger";
 import { RemoteInfo } from "../../utils/types";
 
 type MessageHandlerCallback = (request: TCPRequest, response: TCPResponse) => void;

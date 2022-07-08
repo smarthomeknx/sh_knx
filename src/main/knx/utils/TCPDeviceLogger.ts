@@ -48,8 +48,8 @@ const tcpClientLogCSVFormat = printf(({ level, message, label, timestamp, tcpDev
     //socketIPPortPart: toCSVString(device.ipPort),
     //externalIPAddressPart: toCSVString(tcpMsg.remote ? tcpMsg.remote.address : ""),
     //externalIPPortPart: toCSVString(tcpMsg.remote ? tcpMsg.remote.address.port : ""),
-    remoteIPAddressPart: toCSVString(device.remote?.ipAddress),
-    remoteIPPortPart: toCSVString(device.remote?.port),
+    remoteIPAddressPart: toCSVString("TODO"), //device.remote?.ipAddress),
+    remoteIPPortPart: toCSVString("TODO"), //device.remote?.port),
     direction: toCSVString(tcpMsg.direction),
     serviceTypePart: toCSVString(tcpMsg.serviceType),
     message: toCSVString(message),
@@ -69,8 +69,8 @@ const tcpDeviceLogConsoleFormat = printf(({ level, message, label, timestamp, tc
     //   level: toCSVString(level),
     //   socketIPAddressPart: toCSVString(device.ipAddress),
     //   socketIPPortPart: toCSVString(device.ipPort),
-    const remoteIPAddressPart = device.remote?.ipAddress; //tcpMessage.remoteIPHost; //tcpMsg.remote ? tcpMsg.remote.address : "?";
-    const remoteIPPortPart = device.remote?.port; //tcpMessage.remoteIPPort; //tcpMsg.remote ? tcpMsg.remote.port : "?";
+    const remoteIPAddressPart = tcpMsg.remote?.ipAddress; //""; //device.remote?.ipAddress; //tcpMessage.remoteIPHost; //tcpMsg.remote ? tcpMsg.remote.address : "?";
+    const remoteIPPortPart = tcpMsg.remote?.port; //1111; //device.remote?.port; //tcpMessage.remoteIPPort; //tcpMsg.remote ? tcpMsg.remote.port : "?";
     //   direction: toCSVString(tcpMsg.direction),
     //   serviceTypePart: toCSVString(tcpMsg.serviceType),
     //   message: toCSVString(message)
@@ -90,12 +90,12 @@ const tcpDeviceLogConsoleFormat = printf(({ level, message, label, timestamp, tc
         directionPart += " TO ";
         break;
     }
-    return `${timestamp} ${level} - ${device.friendlyName || "UNKNOWN"}(${device.remote?.ipAddress} ${
-      device.remote?.port
+    return `${timestamp} ${level} - ${device.friendlyName || "UNKNOWN"}(${device.local?.ipAddress} ${
+      device.local?.port
     }) -  ${tcpMsg.serviceType} ${directionPart} ${remoteIPAddressPart}:${remoteIPPortPart}: ${message}`;
   } else {
-    return `${timestamp} ${level} - ${device.friendlyName || "UNKNOWN"}(${device.remote?.ipAddress} ${
-      device.remote?.port
+    return `${timestamp} ${level} - ${device.friendlyName || "UNKNOWN"}(${device.local?.ipAddress} ${
+      device.local?.port
     }): ${message}`;
   }
 });

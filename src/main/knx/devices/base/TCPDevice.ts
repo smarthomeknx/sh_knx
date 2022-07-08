@@ -3,18 +3,14 @@ import * as net from "net";
 import { promisify } from "util";
 import { Logger } from "winston";
 import { logBuffer, STATUS_LOG } from "../../utils/logging";
-import { createTCPClientLogger, TCPMessage } from "../../utils/TCPClientLogger";
+import { createTCPClientLogger, TCPMessage } from "../../utils/TCPDeviceLogger";
 import { SERVICE_TYPE } from "../../messages/structures/KNX_SPECIFICATION";
 import TCPMessageHandler from "../../messages/utils/TCPMessageHandler";
 import Device, { DeviceSettings } from "./Device";
 import DescriptionRequest from "../../messages/DescriptionRequest";
-import SearchResponse from "../../messages/SearchResponse";
+import { RemoteInfo } from "../../utils/types";
 
 export interface TCPDeviceSettings extends DeviceSettings {
-  readonly remote: {
-    ipAddress: string;
-    port: number;
-  };
   readonly local: {
     ipAddress: string;
     port: number;
@@ -29,7 +25,6 @@ export default class TCPDevice<Type extends TCPDeviceSettings> extends Device<TC
   readonly tcpSocket: net.Socket;
   readonly tcpServer: net.Server;
   readonly messageHandler: TCPMessageHandler;
-  //innerSend?: SentType;
 
   constructor(readonly id: string, readonly settings: Type) {
     super(id, settings);
@@ -42,8 +37,20 @@ export default class TCPDevice<Type extends TCPDeviceSettings> extends Device<TC
   }
 
   async listen(): Promise<void> {
-    this.tcpServer.listen(this.settings.local.port, () => {
-      STATUS_LOG.info("Server listening on port:%s", this.settings.local.port);
+    this.tcpServer.listen(this.settings.local.port + 1, () => {
+      STATUS_LOG.info(
+        `TCPDevice ${this.settings.friendlyName} listening on ${this.tcpServer.address()} (config:${
+          this.settings.local.port + 1
+        })`
+      );
+    });
+
+    this.tcpServer.on("error", (err) => {
+      STATUS_LOG.info(`TCPDevice ${this.settings.friendlyName} error occured: \n${err}`);
+    });
+
+    this.tcpServer.on("end", () => {
+      STATUS_LOG.info(`TCPDevice ${this.settings.friendlyName} client disconneted`);
     });
   }
 
@@ -74,14 +81,14 @@ export default class TCPDevice<Type extends TCPDeviceSettings> extends Device<TC
   //   });
   // }
 
-  async write(serviceType: SERVICE_TYPE, msg: Buffer): Promise<void> {
+  async write(remote: RemoteInfo, serviceType: SERVICE_TYPE, msg: Buffer): Promise<void> {
     if (!this.tcpSocket.writable) {
       throw Error("Socket is not writeable. The socket must be connected.");
     }
     const tcpMessage: TCPMessage = {
       direction: "OUTGOING",
       //remote: { address: this.tcpSocket.remoteAddress, port: this.tcpSocket.remotePort },
-      remote: this.settings.remote,
+      remote: remote,
       //   host: this.settings.remote.host,
       //   port: this.settings.remote.port
       // },
@@ -99,20 +106,16 @@ export default class TCPDevice<Type extends TCPDeviceSettings> extends Device<TC
     }
   }
 
-  async connectWrite(serviceType: SERVICE_TYPE, msg: Buffer): Promise<void> {
+  async connectAndWrite(remote: RemoteInfo, serviceType: SERVICE_TYPE, msg: Buffer): Promise<void> {
     //this.innerSend = promisify<Buffer, number, number, number, string>(udpSocket.send).bind(udpSocket);
     //this.tcpSocket.connect(this.settings.targetIPPort, this.settings.targetIPAddress, ));
-    if (!this.settings.remote) {
-      throw new Error(`No remote server defined. Please ensure to provide remote ip address and port!`);
-    }
+    // if (!this.settings.remote) {
+    //   throw new Error(`No remote server defined. Please ensure to provide remote ip address and port!`);
+    // }
     this.tcpSocket.setKeepAlive(true);
-    await this.tcpSocket.connect(this.settings.remote.port, this.settings.remote.ipAddress, async () => {
-      STATUS_LOG.info(
-        "Established TCP Connection to %s:%s, start writing...",
-        this.settings.remote?.ipAddress,
-        this.settings.remote?.port
-      );
-      await this.write(serviceType, msg);
+    await this.tcpSocket.connect(remote.port, remote.ipAddress, async () => {
+      STATUS_LOG.info("Established TCP Connection to %s:%s, start writing...", remote.ipAddress, remote.port);
+      await this.write(remote, serviceType, msg);
     });
 
     this.tcpSocket.on("data", () => {
@@ -134,7 +137,7 @@ export default class TCPDevice<Type extends TCPDeviceSettings> extends Device<TC
     });
   }
 
-  async triggerDescriptionRequest(): Promise<void> {
+  async triggerDescriptionRequest(remote: RemoteInfo): Promise<void> {
     // set the remote server from search response data:
 
     // this.settings.remote = {
@@ -165,6 +168,6 @@ export default class TCPDevice<Type extends TCPDeviceSettings> extends Device<TC
     // };
     //const client = new TCPDevice(searchResponse.dibHardwareStructure.data.DeviceFriendlyName || "Anonymous", settings);
     //await client.connect();
-    await this.connectWrite(message.serviceType, buffer);
+    await this.connectAndWrite(remote, message.serviceType, buffer);
   }
 }

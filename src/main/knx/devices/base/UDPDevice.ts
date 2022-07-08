@@ -85,7 +85,14 @@ export default class UDBDevice<Type extends UDPDeviceSettings> extends Device<UD
 
     const buffer: Buffer = message.toBuffer();
     if (!this.settings.multicast) throw Error("Can't sent search request without multicast settings ");
+
     await this.send(message.serviceType, buffer, this.settings.multicast.port, this.settings.multicast.ipAddress);
+    this.pendingSearchResponseSince = Date.now();
+    // set timeout to ignore search responses after the SEARCH_TIMEOUT
+    this.udpLogger.info("Triggered search request with timeout %s", this.defaultSearchTimeout);
+    await setTimeout(() => {
+      this.pendingSearchResponseSince = -1;
+    }, this.defaultSearchTimeout);
   }
 
   onSearchResponse = (request: UDPRequest, response: UDPResponse): void => {

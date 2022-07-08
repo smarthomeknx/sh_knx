@@ -39,31 +39,32 @@ export default class IPScanner {
   settings: IPScannerSettings;
   pendingSearchResponseSince = -1;
   searchResponses: SearchResponse[] = [];
+  tcpServer: TCPDevice<TCPDeviceSettings>;
 
   constructor(id: string, settings: IPScannerSettings) {
     this.id = id;
     this.settings = settings;
-    // create the UDP Device for scanning;
 
-    // this.tcpSettings = {
-    //   // needed? host: settings.local.host,
-    //   local: {
-    //     ipAddress: settings.local.ipAddress,
-    //     port: settings.local.port
-    //   },
-    //   friendlyName: settings.friendlyName + "_TCP",
-    //   knxIndividualAddress: settings.knxIndividualAddress,
-    //   knxSerialNumber: settings.knxSerialNumber,
-    //   macAddress: settings.macAddress,
-    //   projectInstallationID: settings.projectInstallationID,
-    //   type: DEVICE_TYPE + "_TCP"
-    // };
+    const tcpSettings = {
+      local: {
+        ipAddress: this.settings.local.ipAddress,
+        port: this.settings.local.port
+      },
+      friendlyName: this.settings.friendlyName + "_TCP",
+      knxIndividualAddress: this.settings.knxIndividualAddress,
+      knxSerialNumber: this.settings.knxSerialNumber,
+      macAddress: this.settings.macAddress,
+      projectInstallationID: this.settings.projectInstallationID,
+      type: DEVICE_TYPE + "_TCP"
+    };
+    this.tcpServer = new TCPDevice(this.id + "_TCP", tcpSettings);
   }
 
   async powerOn(): Promise<void> {
     //this.messageHandler.addTypedCallback(SERVICE_TYPE.SEARCH_RESPONSE, this.onSearchResponse);
     //this.messageHandler.addTypedCallback(SERVICE_TYPE.DESCRIPTION_RESPONSE, this.onDescriptionResponse);
     //await this.startServer();
+    await this.tcpServer.listen();
   }
 
   onSearchResponse = (request: UDPRequest, response: UDPResponse, content: SearchResponse): void => {
@@ -187,7 +188,7 @@ export default class IPScanner {
     // create UDPDevice
     const udpDevice = new UDPDevice(this.id + "_UDP", udpSettings);
     udpDevice.searchResponseCallback = this.onSearchResponse;
-    udpDevice.startListener();
+    await udpDevice.startListener();
     // triggerSearchRequest
     await udpDevice.triggerSearchRequest();
     //this.pendingSearchResponseSince = Date.now();
@@ -226,25 +227,13 @@ export default class IPScanner {
       );
     }
 
-    const tcpSettings = {
-      local: {
-        ipAddress: this.settings.local.ipAddress,
-        port: this.settings.local.port
-      },
-      remote: {
-        ipAddress: searchResponse.hpaiStructure.data.IPAddress,
-        port: searchResponse.hpaiStructure.data.Port
-      },
-      friendlyName: this.settings.friendlyName + "_TCP",
-      knxIndividualAddress: this.settings.knxIndividualAddress,
-      knxSerialNumber: this.settings.knxSerialNumber,
-      macAddress: this.settings.macAddress,
-      projectInstallationID: this.settings.projectInstallationID,
-      type: DEVICE_TYPE + "_TCP"
+    const remote = {
+      ipAddress: searchResponse.hpaiStructure.data.IPAddress,
+      port: searchResponse.hpaiStructure.data.Port
     };
 
-    const tcpDevice = new TCPDevice(this.id + "_TCP", tcpSettings);
-    await tcpDevice.triggerDescriptionRequest();
+    //const tcpDevice = new TCPDevice(this.id + "_TCP", tcpSettings);
+    await this.tcpServer.triggerDescriptionRequest(remote);
     // send description request
     //await this.triggerDescriptionRequest(searchResponse);
     return new IPServer("fake", {
