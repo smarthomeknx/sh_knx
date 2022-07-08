@@ -1,16 +1,18 @@
-import IPClient from "../devices/IPClient";
-import { UDPDeviceSettings } from "../devices/UDPDevice";
+import IPScanner from "../devices/IPScanner";
+import { IPScannerSettings } from "../devices/IPScanner";
 import * as constants from "../utils/constants";
 import * as knxSpec from "../messages/structures/KNX_SPECIFICATION";
 
 // TODO Config configurable
-const BUS_MONITOR_CONFIG: UDPDeviceSettings = {
-  type: typeof IPClient,
-  ipAddress: constants.CLIENT_IP_ADDRESS,
-  ipPort: constants.CLIENT_PORT,
+const SCANNER_CONFIG: IPScannerSettings = {
+  type: typeof IPScanner,
+  local: {
+    ipAddress: constants.CLIENT_IP_ADDRESS,
+    port: constants.CLIENT_PORT
+  },
   multicast: {
     ipAddress: knxSpec.KNXIP_CONSTANTS.KNX_NET_IP_SETUP_MULTICAST_ADDRESS,
-    ipPort: knxSpec.KNXIP_CONSTANTS.KNX_NET_IP_Port
+    port: knxSpec.KNXIP_CONSTANTS.KNX_NET_IP_Port
   },
   knxIndividualAddress: "255.255",
   projectInstallationID: "00.01",
@@ -19,11 +21,11 @@ const BUS_MONITOR_CONFIG: UDPDeviceSettings = {
   friendlyName: constants.SERVER_FRIENDLY_NAME
 };
 
-const busMonitor = new IPClient("BUS_MONITOR", BUS_MONITOR_CONFIG);
+const scanner = new IPScanner("IP_SCANNER", SCANNER_CONFIG);
 (async () => {
   try {
-    await busMonitor.powerOn();
-    await busMonitor.discover();
+    await scanner.powerOn();
+    await scanner.search();
   } catch (e) {
     console.log("Message sent error");
   }

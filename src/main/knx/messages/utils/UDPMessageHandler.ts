@@ -9,7 +9,7 @@ import UDPRequest from "../UDPRequest";
 import UDPResponse from "../UDPResponse";
 import { Message } from "./Message";
 
-import UDPDevice, { UDPDeviceSettings } from "../../devices/UDPDevice";
+import UDPDevice, { UDPDeviceSettings } from "../../devices/base/UDPDevice";
 import { UDPMessage } from "../../utils/UDPDeviceLogger";
 
 type MessageHandlerCallback = (request: UDPRequest, response: UDPResponse) => void;

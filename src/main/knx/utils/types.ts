@@ -1,4 +1,4 @@
 export interface RemoteInfo {
-  host: string;
+  ipAddress: string;
   port: number;
 }

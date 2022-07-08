@@ -1,12 +1,12 @@
 import ETSSoftware from "../devices/ETSSoftware";
-import { UDPDeviceSettings } from "../devices/UDPDevice";
+import { UDPDeviceSettings } from "../devices/base/UDPDevice";
 import * as constants from "../utils/constants";
 
 const ETS_SOFTWARE_CONFIG: UDPDeviceSettings = {
   type: typeof ETSSoftware,
   ipAddress: constants.CLIENT_IP_ADDRESS,
-  ipPort: constants.CLIENT_PORT,
-  multicast: { ipAddress: constants.MULTICAST_IP_ADDRESS, ipPort: constants.SERVER_PORT },
+  port: constants.CLIENT_PORT,
+  multicast: { ipAddress: constants.MULTICAST_IP_ADDRESS, port: constants.SERVER_PORT },
   knxIndividualAddress: "255.255",
   projectInstallationID: "00.01",
   knxSerialNumber: constants.SERVER_SERIAL_NUMBER,

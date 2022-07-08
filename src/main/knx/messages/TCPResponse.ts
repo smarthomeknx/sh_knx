@@ -11,7 +11,7 @@ export default class TCPResponse {
 
   constructor(readonly request: TCPRequest, readonly tcpSocket: net.Socket) {
     this.targetPort = request.info.port;
-    this.targetAddress = request.info.host;
+    this.targetAddress = request.info.ipAddress;
   }
 
   async write(message: Message): Promise<void> {

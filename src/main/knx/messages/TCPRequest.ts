@@ -14,7 +14,7 @@ export default class TCPRequest {
     this.id = uuidv4();
     this.requestLogData = {
       messageID: this.id,
-      source: { ipAddress: info.host, port: info.port },
+      source: { ipAddress: info.ipAddress, port: info.port },
       serviceType: "NOT IDENTIFIED"
     };
     this.log = createRequestLogger(this.requestLogData);

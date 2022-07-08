@@ -6,7 +6,7 @@ import SearchRequest from "../messages/SearchRequest";
 import SearchResponse from "../messages/SearchResponse";
 import UDPMessageHandler from "../messages/utils/UDPMessageHandler";
 import UDPResponse from "../messages/UDPResponse";
-import UDPDevice, { UDPDeviceSettings } from "./UDPDevice";
+import UDPDevice, { UDPDeviceSettings } from "./base/UDPDevice";
 
 //interface ETSSoftwareSettings extends UDPDeviceSettings {
 //   // readonly ipAddress: string;
@@ -58,11 +58,11 @@ export default class ETSSoftware extends UDPDevice<UDPDeviceSettings> {
     const message: SearchRequest = new SearchRequest();
     message.setDefaultValues();
     message.hpaiStructure.data.IPAddress = this.settings.ipAddress;
-    message.hpaiStructure.data.Port = this.settings.ipPort;
+    message.hpaiStructure.data.Port = this.settings.port;
 
     const buffer: Buffer = message.toBuffer();
     if (!this.settings.multicast) throw Error("Can't sent search request without multicast settings ");
-    await this.send(message.serviceType, buffer, this.settings.multicast.ipPort, this.settings.multicast.ipAddress);
+    await this.send(message.serviceType, buffer, this.settings.multicast.port, this.settings.multicast.ipAddress);
     // this.udpSocket.send(
     //   buffer,
     //   0,

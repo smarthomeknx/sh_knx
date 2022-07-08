@@ -6,7 +6,7 @@ import UDPRequest from "../messages/UDPRequest";
 import { Message } from "../messages/utils/Message";
 import UDPMessageHandler from "../messages/utils/UDPMessageHandler";
 import UDPResponse from "../messages/UDPResponse";
-import UDPDevice, { UDPDeviceSettings } from "./UDPDevice";
+import UDPDevice, { UDPDeviceSettings } from "./base/UDPDevice";
 //import RawStructure from "../messages/knx/RawStructure";
 
 export interface IPObserverSettings extends UDPDeviceSettings {

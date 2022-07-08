@@ -6,7 +6,7 @@ import SearchRequest from "../messages/SearchRequest";
 import SearchResponse from "../messages/SearchResponse";
 import UDPMessageHandler from "../messages/utils/UDPMessageHandler";
 import UDPResponse from "../messages/UDPResponse";
-import UDPDevice, { UDPDeviceSettings } from "./UDPDevice";
+import UDPDevice, { UDPDeviceSettings } from "./base/UDPDevice";
 
 export default class IPServer extends UDPDevice<UDPDeviceSettings> {
   constructor(id: string, settings: UDPDeviceSettings) {

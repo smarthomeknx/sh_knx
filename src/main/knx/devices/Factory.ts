@@ -1,8 +1,8 @@
 import IPObserver, { IPObserverSettings } from "./IPObserver";
-import Device, { DeviceSettings } from "./Device";
+import Device, { DeviceSettings } from "./base/Device";
 import ETSSoftware from "./ETSSoftware";
 import IPRouter from "./IPRouter";
-import { UDPDeviceSettings } from "./UDPDevice";
+import { UDPDeviceSettings } from "./base/UDPDevice";
 
 const typeClasses = [IPRouter, ETSSoftware, IPObserver];
 

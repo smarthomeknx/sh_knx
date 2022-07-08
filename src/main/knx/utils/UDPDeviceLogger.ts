@@ -1,6 +1,6 @@
 import { RemoteInfo } from "dgram";
 import winston from "winston";
-import { UDPDeviceSettings } from "../devices/UDPDevice";
+import { UDPDeviceSettings } from "../devices/base/UDPDevice";
 import { logBuffer, logBufferCSV, toCSVString } from "./logging";
 const { combine, splat, simple, timestamp, colorize, label, printf } = winston.format;
 
@@ -34,7 +34,7 @@ const udpDeviceLogCSVFormat = printf(({ level, message, label, timestamp, udpDev
     label: toCSVString(label),
     level: toCSVString(level),
     socketIPAddressPart: toCSVString(device.ipAddress),
-    socketIPPortPart: toCSVString(device.ipPort),
+    socketIPPortPart: toCSVString(device.port),
     externalIPAddressPart: toCSVString(udpMsg.remote ? udpMsg.remote.address : ""),
     externalIPPortPart: toCSVString(udpMsg.remote ? udpMsg.remote.port : ""),
     direction: toCSVString(udpMsg.direction),
@@ -77,12 +77,12 @@ const udpDeviceLogConsoleFormat = printf(({ level, message, label, timestamp, ud
         directionPart += " TO ";
         break;
     }
-    return `${timestamp} ${level} - ${device.friendlyName || "UNKNOWN"}(${device.ipAddress} ${device.ipPort}) -  ${
+    return `${timestamp} ${level} - ${device.friendlyName || "UNKNOWN"}(${device.ipAddress} ${device.port}) -  ${
       udpMsg.serviceType
     } ${directionPart} ${remoteIPAddressPart}:${remoteIPPortPart}: ${message}`;
   } else {
     return `${timestamp} ${level} - ${device.friendlyName || "UNKNOWN"}(${device.ipAddress} ${
-      device.ipPort
+      device.port
     }): ${message}`;
   }
 });

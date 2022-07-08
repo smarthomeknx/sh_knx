@@ -1,4 +1,4 @@
-import DIBHardwareStructure from "../messages/structures/DIBHardwareStructure";
+import DIBHardwareStructure from "../../messages/structures/DIBHardwareStructure";
 
 export interface DeviceSettings {
   readonly type: string;
