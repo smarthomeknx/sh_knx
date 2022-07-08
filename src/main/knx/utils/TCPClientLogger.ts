@@ -48,8 +48,8 @@ const tcpClientLogCSVFormat = printf(({ level, message, label, timestamp, tcpDev
     //socketIPPortPart: toCSVString(device.ipPort),
     //externalIPAddressPart: toCSVString(tcpMsg.remote ? tcpMsg.remote.address : ""),
     //externalIPPortPart: toCSVString(tcpMsg.remote ? tcpMsg.remote.address.port : ""),
-    remoteIPAddressPart: toCSVString(device.remoteIPAddress),
-    remoteIPPortPart: toCSVString(device.remoteIPPort),
+    remoteIPAddressPart: toCSVString(device.remote?.host),
+    remoteIPPortPart: toCSVString(device.remote?.port),
     direction: toCSVString(tcpMsg.direction),
     serviceTypePart: toCSVString(tcpMsg.serviceType),
     message: toCSVString(message),
@@ -69,8 +69,8 @@ const tcpDeviceLogConsoleFormat = printf(({ level, message, label, timestamp, tc
     //   level: toCSVString(level),
     //   socketIPAddressPart: toCSVString(device.ipAddress),
     //   socketIPPortPart: toCSVString(device.ipPort),
-    const remoteIPAddressPart = tcpMessage.remoteIPHost; //tcpMsg.remote ? tcpMsg.remote.address : "?";
-    const remoteIPPortPart = tcpMessage.remoteIPPort; //tcpMsg.remote ? tcpMsg.remote.port : "?";
+    const remoteIPAddressPart = device.remote?.host; //tcpMessage.remoteIPHost; //tcpMsg.remote ? tcpMsg.remote.address : "?";
+    const remoteIPPortPart = device.remote?.port; //tcpMessage.remoteIPPort; //tcpMsg.remote ? tcpMsg.remote.port : "?";
     //   direction: toCSVString(tcpMsg.direction),
     //   serviceTypePart: toCSVString(tcpMsg.serviceType),
     //   message: toCSVString(message)
@@ -90,12 +90,12 @@ const tcpDeviceLogConsoleFormat = printf(({ level, message, label, timestamp, tc
         directionPart += " TO ";
         break;
     }
-    return `${timestamp} ${level} - ${device.friendlyName || "UNKNOWN"}(${device.remoteIPAddress} ${
-      device.remoteIPPort
+    return `${timestamp} ${level} - ${device.friendlyName || "UNKNOWN"}(${device.remote?.host} ${
+      device.remote?.port
     }) -  ${tcpMsg.serviceType} ${directionPart} ${remoteIPAddressPart}:${remoteIPPortPart}: ${message}`;
   } else {
-    return `${timestamp} ${level} - ${device.friendlyName || "UNKNOWN"}(${device.remoteIPAddress} ${
-      device.remoteIPPort
+    return `${timestamp} ${level} - ${device.friendlyName || "UNKNOWN"}(${device.remote?.host} ${
+      device.remote?.port
     }): ${message}`;
   }
 });
@@ -115,7 +115,7 @@ const TCP_LOG = winston.createLogger({
 });
 
 export const createTCPClientLogger = (settings: Partial<TCPClientSettings>): winston.Logger => {
-  return TCP_LOG.child({ tcpDeviceSettings: settings });
+  return TCP_LOG.child({ tcpClientSettings: settings });
 };
 
 if (process.env.NODE_ENV !== "production") {

@@ -7,6 +7,7 @@ import SearchResponse from "../messages/SearchResponse";
 import UDPMessageHandler, { SPECIAL_TYPE } from "../messages/utils/UDPMessageHandler";
 import UDPResponse from "../messages/UDPResponse";
 import UDPDevice, { UDPDeviceSettings } from "./UDPDevice";
+import TCPClient, { TCPClientSettings } from "./TCPClient";
 import DescriptionRequest from "../messages/DescriptionRequest";
 import DescriptionResponse from "../messages/DescriptionResponse";
 import IPServer from "./IPServer";
@@ -99,7 +100,7 @@ export default class IPClient extends UDPDevice<UDPDeviceSettings> {
     await this.send(message.serviceType, buffer, this.settings.multicast.ipPort, this.settings.multicast.ipAddress);
   }
 
-  async triggerDescriptionRequest(): Promise<void> {
+  async triggerDescriptionRequest(searchResponse: SearchResponse): Promise<void> {
     const message: DescriptionRequest = new DescriptionRequest();
     message.setDefaultValues();
     message.hpaiStructure.data.IPAddress = this.settings.ipAddress;
@@ -107,8 +108,23 @@ export default class IPClient extends UDPDevice<UDPDeviceSettings> {
     // don't change the port, seems 3671 is default from KNX: message.hpaiStructure.data.Port = this.settings.ipPort;
 
     const buffer: Buffer = message.toBuffer();
-    if (!this.settings.multicast) throw Error("Can't sent search request without multicast settings ");
-    await this.send(message.serviceType, buffer, this.settings.multicast.ipPort, this.settings.multicast.ipAddress);
+    //if (!this.settings.multicast) throw Error("Can't sent search request without multicast settings ");
+    //await this.send(message.serviceType, buffer, this.settings.multicast.ipPort, this.settings.multicast.ipAddress);
+    const settings: TCPClientSettings = {
+      friendlyName: searchResponse.dibHardwareStructure.data.DeviceFriendlyName || "",
+      knxIndividualAddress: searchResponse.dibHardwareStructure.data.KNXIndividualAddress || "",
+      knxSerialNumber: searchResponse.dibHardwareStructure.data.DeviceKNXSerialNumber || "",
+      macAddress: searchResponse.dibHardwareStructure.data.DeviceMACAddress || "",
+      projectInstallationID: searchResponse.dibHardwareStructure.data.ProjectInstallationIdentifier || "",
+      type: searchResponse.dibHardwareStructure.data.DescriptionTypeCode + "" || "",
+      remote: {
+        host: searchResponse.hpaiStructure.data.IPAddress || "",
+        port: searchResponse.hpaiStructure.data.Port || -1
+      }
+    };
+    const client = new TCPClient(searchResponse.dibHardwareStructure.data.DeviceFriendlyName || "Anonymous", settings);
+    //await client.connect();
+    await client.connectWrite(message.serviceType, buffer);
   }
 
   /**
@@ -156,7 +172,7 @@ export default class IPClient extends UDPDevice<UDPDeviceSettings> {
    */
   async requestServerDescription(searchResponse: SearchResponse): Promise<IPServer> {
     // send description request
-    await this.triggerDescriptionRequest();
+    await this.triggerDescriptionRequest(searchResponse);
     return new IPServer("fake", {
       type: "IPRouter",
       ipAddress: "192.168.1.138",

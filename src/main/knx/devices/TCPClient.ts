@@ -9,14 +9,16 @@ import TCPMessageHandler from "../messages/utils/TCPMessageHandler";
 import Device, { DeviceSettings } from "./Device";
 
 export interface TCPClientSettings extends DeviceSettings {
-  readonly remoteIPAddress: string;
-  readonly remoteIPPort: number;
+  readonly remote: {
+    host: string;
+    port: number;
+  };
 }
 
 export type SentCallbackType = (error: Error | null, bytes: number) => void;
 export type SentType = (msg: Buffer, offset: number, length: number, port: number, address: string) => void;
 
-export default abstract class TCPDevice<Type extends TCPClientSettings> extends Device<TCPClientSettings> {
+export default class TCPDevice<Type extends TCPClientSettings> extends Device<TCPClientSettings> {
   readonly tcpLogger: Logger;
   readonly tcpSocket: net.Socket;
   readonly messageHandler: TCPMessageHandler;
@@ -31,11 +33,12 @@ export default abstract class TCPDevice<Type extends TCPClientSettings> extends 
     //await promisedSend(buffer, 0, buffer.length, this.request.info.port, this.request.info.address);
   }
 
-  connect = (): void => {
+  async connect(): Promise<void> {
     //this.innerSend = promisify<Buffer, number, number, number, string>(udpSocket.send).bind(udpSocket);
     //this.tcpSocket.connect(this.settings.targetIPPort, this.settings.targetIPAddress, ));
-    this.tcpSocket.connect(this.settings.remoteIPPort, this.settings.remoteIPAddress, () => {
-      STATUS_LOG.info("Established TCP Connection to %s:%s", this.settings.remoteIPAddress, this.settings.remoteIPPort);
+    this.tcpSocket.setKeepAlive(true);
+    await this.tcpSocket.connect(this.settings.remote.port, this.settings.remote.host, () => {
+      STATUS_LOG.info("Established TCP Connection to %s:%s", this.settings.remote.host, this.settings.remote.port);
     });
 
     this.tcpSocket.on("data", () => {
@@ -49,7 +52,13 @@ export default abstract class TCPDevice<Type extends TCPClientSettings> extends 
         `TCPClient ${this.settings.friendlyName} disconnected ${this.tcpSocket.localAddress} from: ${this.tcpSocket.remoteAddress}`
       );
     });
-  };
+
+    this.tcpSocket.on("timeout", () => {
+      STATUS_LOG.info(
+        `TCPClient ${this.settings.friendlyName} timed out ${this.tcpSocket.localAddress} from: ${this.tcpSocket.remoteAddress}`
+      );
+    });
+  }
 
   async write(serviceType: SERVICE_TYPE, msg: Buffer): Promise<void> {
     if (!this.tcpSocket.writable) {
@@ -58,10 +67,10 @@ export default abstract class TCPDevice<Type extends TCPClientSettings> extends 
     const tcpMessage: TCPMessage = {
       direction: "OUTGOING",
       //remote: { address: this.tcpSocket.remoteAddress, port: this.tcpSocket.remotePort },
-      remote: {
-        host: this.settings.remoteIPAddress,
-        port: this.settings.remoteIPPort
-      },
+      remote: this.settings.remote,
+      //   host: this.settings.remote.host,
+      //   port: this.settings.remote.port
+      // },
       buffer: msg,
       serviceType: SERVICE_TYPE[serviceType]
     };
@@ -74,5 +83,37 @@ export default abstract class TCPDevice<Type extends TCPClientSettings> extends 
       this.tcpLogger.warn("WRITE error: %s", error, { tcpMessage: tcpMessage });
       throw error;
     }
+  }
+
+  async connectWrite(serviceType: SERVICE_TYPE, msg: Buffer): Promise<void> {
+    //this.innerSend = promisify<Buffer, number, number, number, string>(udpSocket.send).bind(udpSocket);
+    //this.tcpSocket.connect(this.settings.targetIPPort, this.settings.targetIPAddress, ));
+    this.tcpSocket.setKeepAlive(true);
+    await this.tcpSocket.connect(this.settings.remote.port, this.settings.remote.host, async () => {
+      STATUS_LOG.info(
+        "Established TCP Connection to %s:%s, start writing...",
+        this.settings.remote.host,
+        this.settings.remote.port
+      );
+      await this.write(serviceType, msg);
+    });
+
+    this.tcpSocket.on("data", () => {
+      STATUS_LOG.info(
+        `TCPClient ${this.settings.friendlyName} data on ${this.tcpSocket.localAddress} for messages from: ${this.tcpSocket.remoteAddress}`
+      );
+    });
+
+    this.tcpSocket.on("close", () => {
+      STATUS_LOG.info(
+        `TCPClient ${this.settings.friendlyName} disconnected ${this.tcpSocket.localAddress} from: ${this.tcpSocket.remoteAddress}`
+      );
+    });
+
+    this.tcpSocket.on("timeout", () => {
+      STATUS_LOG.info(
+        `TCPClient ${this.settings.friendlyName} timed out ${this.tcpSocket.localAddress} from: ${this.tcpSocket.remoteAddress}`
+      );
+    });
   }
 }
