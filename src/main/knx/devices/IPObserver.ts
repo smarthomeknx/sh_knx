@@ -38,23 +38,23 @@ const buildRequestHandler = (
     response.targetPort = forwardToIPPort;
 
     const forwardMessage = new Message();
-    const rawStructureLength = //forwardMessage.headerStructure.totalLength
-      request.message.byteLength -
-      (forwardMessage.headerStructure.bufferSize + forwardMessage.hpaiStructure.bufferSize);
+    //const rawStructureLength = //forwardMessage.headerStructure.totalLength
+    //  request.message.byteLength -
+    //(forwardMessage.headerStructure.bufferSize + forwardMessage.hpaiStructure.bufferSize);
 
-    UDPMessageHandler.setValuesFromBuffer(request, forwardMessage);
+    // UDPMessageHandler.setValuesFromBuffer(request, forwardMessage);
 
-    if (rawStructureLength > 0) {
-      //const rawStructure = new RawStructure(rawStructureLength);
-      //forwardMessage.structures.push(rawStructure);
-    }
+    // if (rawStructureLength > 0) {
+    //   //const rawStructure = new RawStructure(rawStructureLength);
+    //   //forwardMessage.structures.push(rawStructure);
+    // }
 
     // adjust HPAI Header to get in the middle of communication when answer observer is set
     if (observerDeviceIPAddress) {
-      forwardMessage.hpaiStructure.data.IPAddress = observerDeviceIPAddress;
+      // forwardMessage.hpaiStructure.data.IPAddress = observerDeviceIPAddress;
     }
     if (observerDeviceIPPort) {
-      forwardMessage.hpaiStructure.data.Port = observerDeviceIPPort;
+      // forwardMessage.hpaiStructure.data.Port = observerDeviceIPPort;
     }
 
     //this.fillDeviceInformationBlockStructure(answer.dibStructure);

@@ -39,7 +39,7 @@ export default class TCPDevice<Type extends TCPDeviceSettings> extends Device<TC
   async listen(): Promise<void> {
     this.tcpServer.listen(this.settings.local.port + 1, () => {
       STATUS_LOG.info(
-        `TCPDevice ${this.settings.friendlyName} listening on ${this.tcpServer.address()} (config:${
+        `TCPDevice ${this.settings.friendlyName} listening on ${JSON.stringify(this.tcpServer.address())} (config:${
           this.settings.local.port + 1
         })`
       );

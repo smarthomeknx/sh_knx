@@ -14,12 +14,10 @@ interface JSONMessage {
 export class Message {
   readonly structures: Structure[] = [];
   readonly headerStructure: HeaderStructure;
-  readonly hpaiStructure: HPAIStructure;
 
   constructor(readonly serviceType: knxSpec.SERVICE_TYPE = knxSpec.SERVICE_TYPE.UNDEFINED) {
     this.headerStructure = new HeaderStructure();
-    this.hpaiStructure = new HPAIStructure();
-    this.structures.push(this.headerStructure, this.hpaiStructure);
+    this.structures.push(this.headerStructure);
   }
 
   setDefaultValues(): void {

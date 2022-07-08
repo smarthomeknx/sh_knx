@@ -97,13 +97,15 @@ export const NUMBER_FIELDS = {
   IPPort: new NumberField({ name: "IPPort", maxLength: 2 }),
   DescriptionTypeCode: new NumberField({ name: "DescriptionTypeCode", maxLength: 1 }),
   KNXMedium: new NumberField({ name: "KNXMedium", maxLength: 1 }),
+  KNXManufactorerID: new NumberField({ name: "KNXMedium", maxLength: 2 }),
   DeviceStatus: new NumberField({ name: "DeviceStatus", maxLength: 1 }),
   ServiceFamilyID: new NumberField({ name: "ServiceFamilyID", maxLength: 1 }),
   ServiceFamilyVersion: new NumberField({ name: "ServiceFamilyVersion", maxLength: 1 })
 };
 
 export const STRING_FIELDS = {
-  DeviceFriendlyName: new StringField({ name: "DeviceFriendlyName", maxLength: 30 })
+  DeviceFriendlyName: new StringField({ name: "DeviceFriendlyName", maxLength: 30 }),
+  DeviceTypeName: new StringField({ name: "DeviceFriendlyName", maxLength: 4 })
 };
 
 export const DOT_SEPERATED_BYTES_FIEDS = {

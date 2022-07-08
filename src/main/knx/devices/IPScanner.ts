@@ -39,60 +39,56 @@ export default class IPScanner {
   settings: IPScannerSettings;
   pendingSearchResponseSince = -1;
   searchResponses: SearchResponse[] = [];
-  tcpServer: TCPDevice<TCPDeviceSettings>;
+  //tcpServer: TCPDevice<TCPDeviceSettings>;
+  udpDevice: UDPDevice<UDPDeviceSettings>;
 
   constructor(id: string, settings: IPScannerSettings) {
     this.id = id;
     this.settings = settings;
 
-    const tcpSettings = {
-      local: {
-        ipAddress: this.settings.local.ipAddress,
-        port: this.settings.local.port
-      },
-      friendlyName: this.settings.friendlyName + "_TCP",
+    const udpSettings = {
+      ipAddress: this.settings.local.ipAddress,
+      port: this.settings.local.port,
+      friendlyName: this.settings.friendlyName + "_UDP",
       knxIndividualAddress: this.settings.knxIndividualAddress,
       knxSerialNumber: this.settings.knxSerialNumber,
       macAddress: this.settings.macAddress,
       projectInstallationID: this.settings.projectInstallationID,
-      type: DEVICE_TYPE + "_TCP"
+      multicast: this.settings.multicast,
+      type: DEVICE_TYPE + "_UDP"
     };
-    this.tcpServer = new TCPDevice(this.id + "_TCP", tcpSettings);
+
+    // create UDPDevice
+    this.udpDevice = new UDPDevice(this.id + "_UDP", udpSettings);
+
+    // add callbacks:
+    this.udpDevice.searchResponseCallback = this.onSearchResponse;
+    this.udpDevice.descriptionResponseCallback = this.onDescriptionResponse;
+
+    // const tcpSettings = {
+    //   local: {
+    //     ipAddress: this.settings.local.ipAddress,
+    //     port: this.settings.local.port
+    //   },
+    //   friendlyName: this.settings.friendlyName + "_TCP",
+    //   knxIndividualAddress: this.settings.knxIndividualAddress,
+    //   knxSerialNumber: this.settings.knxSerialNumber,
+    //   macAddress: this.settings.macAddress,
+    //   projectInstallationID: this.settings.projectInstallationID,
+    //   type: DEVICE_TYPE + "_TCP"
+    // };
+    // this.tcpServer = new TCPDevice(this.id + "_TCP", tcpSettings);
   }
 
   async powerOn(): Promise<void> {
     //this.messageHandler.addTypedCallback(SERVICE_TYPE.SEARCH_RESPONSE, this.onSearchResponse);
     //this.messageHandler.addTypedCallback(SERVICE_TYPE.DESCRIPTION_RESPONSE, this.onDescriptionResponse);
     //await this.startServer();
-    await this.tcpServer.listen();
+    //await this.tcpServer.listen();
+    await this.udpDevice.startListener();
   }
 
   onSearchResponse = (request: UDPRequest, response: UDPResponse, content: SearchResponse): void => {
-    // request.log.debug("Handle SearchResponse");
-    // if (this.pendingSearchResponseSince < 0) {
-    //   request.log.debug("Ignoring SearchResponse because no pending search request from this device");
-    //   return;
-    // }
-
-    // const responseDelay = Date.now() - this.pendingSearchResponseSince;
-    // TRACE.debug(`SearchResponse arrived ${responseDelay} ms after request`);
-    // if (responseDelay > SEARCH_TIMEOUT) {
-    //   request.log.info(
-    //     `Ignoring SearchResponse because pending search request from this device was timed out after ${SEARCH_TIMEOUT}`
-    //   );
-    //   return;
-    // }
-
-    // const incomingSearchResponse = new SearchResponse();
-    // UDPMessageHandler.setValuesFromBuffer(request, incomingSearchResponse);
-    // TRACE.debug(`SearchResponse: \n${incomingSearchResponse.toYAML(false)}`);
-    // //this.searchResponses.push(incomingSearchResponse);
-    // this.udpLogger.info(
-    //   "Received search response from %s:%s",
-    //   incomingSearchResponse.hpaiStructure.data.IPAddress,
-    //   incomingSearchResponse.hpaiStructure.data.Port
-    // );
-    // Start
     this.searchResponses.push(content);
     this.requestServerDescription(content);
   };
@@ -173,24 +169,25 @@ export default class IPScanner {
    *
    */
   async search(timeout?: number): Promise<void> {
-    const udpSettings = {
-      ipAddress: this.settings.local.ipAddress,
-      port: this.settings.local.port,
-      friendlyName: this.settings.friendlyName + "_UDP",
-      knxIndividualAddress: this.settings.knxIndividualAddress,
-      knxSerialNumber: this.settings.knxSerialNumber,
-      macAddress: this.settings.macAddress,
-      projectInstallationID: this.settings.projectInstallationID,
-      multicast: this.settings.multicast,
-      type: DEVICE_TYPE + "_UDP"
-    };
+    // const udpSettings = {
+    //   ipAddress: this.settings.local.ipAddress,
+    //   port: this.settings.local.port,
+    //   friendlyName: this.settings.friendlyName + "_UDP",
+    //   knxIndividualAddress: this.settings.knxIndividualAddress,
+    //   knxSerialNumber: this.settings.knxSerialNumber,
+    //   macAddress: this.settings.macAddress,
+    //   projectInstallationID: this.settings.projectInstallationID,
+    //   multicast: this.settings.multicast,
+    //   type: DEVICE_TYPE + "_UDP"
+    // };
 
-    // create UDPDevice
-    const udpDevice = new UDPDevice(this.id + "_UDP", udpSettings);
-    udpDevice.searchResponseCallback = this.onSearchResponse;
-    await udpDevice.startListener();
+    // // create UDPDevice
+    // const udpDevice = new UDPDevice(this.id + "_UDP", udpSettings);
+    // udpDevice.searchResponseCallback = this.onSearchResponse;
+    // await udpDevice.startListener();
     // triggerSearchRequest
-    await udpDevice.triggerSearchRequest();
+    await this.udpDevice.triggerSearchRequest();
+
     //this.pendingSearchResponseSince = Date.now();
     // set timeout to ignore search responses after the SEARCH_TIMEOUT
     //this.udpLogger.info("Trigger search request with timeout %s", SEARCH_TIMEOUT);
@@ -232,8 +229,11 @@ export default class IPScanner {
       port: searchResponse.hpaiStructure.data.Port
     };
 
+    await this.udpDevice.triggerDescriptionRequest(remote);
+
     //const tcpDevice = new TCPDevice(this.id + "_TCP", tcpSettings);
-    await this.tcpServer.triggerDescriptionRequest(remote);
+    //await this.tcpServer.triggerDescriptionRequest(remote);
+
     // send description request
     //await this.triggerDescriptionRequest(searchResponse);
     return new IPServer("fake", {

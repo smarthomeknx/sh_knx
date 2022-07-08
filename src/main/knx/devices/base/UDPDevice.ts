@@ -10,6 +10,9 @@ import SearchRequest from "../../messages/SearchRequest";
 import UDPRequest from "../../messages/UDPRequest";
 import SearchResponse from "../../messages/SearchResponse";
 import UDPResponse from "../../messages/UDPResponse";
+import DescriptionRequest from "../../messages/DescriptionRequest";
+import { RemoteInfo } from "../../utils/types";
+import DescriptionResponse from "../../messages/DescriptionResponse";
 
 const DEFAULT_SEARCH_TIMEOUT = 10000; // 10 seconds
 
@@ -28,6 +31,11 @@ export type SentType = (msg: Buffer, offset: number, length: number, port: numbe
 
 //export type RawMessageHandlerCallback = (request: UDPRequest, response: UDPResponse) => void;
 export type SearchResponseCallback = (request: UDPRequest, response: UDPResponse, content: SearchResponse) => void;
+export type DescriptionResponseCallback = (
+  request: UDPRequest,
+  response: UDPResponse,
+  content: DescriptionResponse
+) => void;
 
 export default class UDBDevice<Type extends UDPDeviceSettings> extends Device<UDPDeviceSettings> {
   readonly udpLogger: Logger;
@@ -37,6 +45,7 @@ export default class UDBDevice<Type extends UDPDeviceSettings> extends Device<UD
   pendingSearchResponseSince = -1;
   innerSend?: SentType;
   searchResponseCallback?: SearchResponseCallback;
+  descriptionResponseCallback?: DescriptionResponseCallback;
 
   constructor(readonly id: string, readonly settings: Type) {
     super(id, settings);
@@ -54,6 +63,7 @@ export default class UDBDevice<Type extends UDPDeviceSettings> extends Device<UD
 
   startListener = async (): Promise<void> => {
     this.messageHandler.addTypedCallback(SERVICE_TYPE.SEARCH_RESPONSE, this.onSearchResponse);
+    this.messageHandler.addTypedCallback(SERVICE_TYPE.DESCRIPTION_RESPONSE, this.onDescriptionResponse);
 
     this.udpSocket.on("listening", () => {
       STATUS_LOG.info(
@@ -75,6 +85,15 @@ export default class UDBDevice<Type extends UDPDeviceSettings> extends Device<UD
     this.enableSender(this.udpSocket);
     STATUS_LOG.info(`UDPDevice ${this.settings.friendlyName} enabled sender`);
   };
+
+  async triggerDescriptionRequest(remote: RemoteInfo): Promise<void> {
+    const message: DescriptionRequest = new DescriptionRequest();
+    message.setDefaultValues();
+    message.hpaiStructure.data.IPAddress = this.settings.ipAddress;
+    message.hpaiStructure.data.Port = this.settings.port;
+    const buffer: Buffer = message.toBuffer();
+    await this.send(message.serviceType, buffer, remote.port, remote.ipAddress);
+  }
 
   async triggerSearchRequest(): Promise<void> {
     const message: SearchRequest = new SearchRequest();
@@ -124,6 +143,24 @@ export default class UDBDevice<Type extends UDPDeviceSettings> extends Device<UD
       this.searchResponseCallback(request, response, incomingSearchResponse);
     } else {
       TRACE.debug(`Message is not casted to SearchResponse as no callback is provided`);
+    }
+  };
+
+  onDescriptionResponse = (request: UDPRequest, response: UDPResponse): void => {
+    request.log.debug("Handle DescriptionResponse");
+
+    if (this.descriptionResponseCallback) {
+      const incomingDescriptionResponse = new DescriptionResponse();
+      UDPMessageHandler.setValuesFromBuffer(request, incomingDescriptionResponse);
+      TRACE.debug(`DescriptionResponse: \n${incomingDescriptionResponse.toYAML(false)}`);
+      this.udpLogger.info(
+        "Received description response from %s:%s",
+        request.info.address, //incomingDescriptionResponse.hpaiStructure.data.IPAddress,
+        request.info.port //incomingDescriptionResponse.hpaiStructure.data.Port
+      );
+      this.descriptionResponseCallback(request, response, incomingDescriptionResponse);
+    } else {
+      TRACE.debug(`Message is not casted to DescriptionResponse as no callback is provided`);
     }
   };
 

@@ -126,18 +126,21 @@ import * as knxSpec from "./structures/KNX_SPECIFICATION";
 import { Message } from "./utils/Message";
 import DIBHardwareStructure from "./structures/DIBHardwareStructure";
 import DIBSupportedServiceFamilyStructure from "./structures/DIBSupportServiceFamilyStructure";
+import HPAIStructure from "./structures/HPAIStructure";
 
 const MESSAGE_TYPE = knxSpec.SERVICE_TYPE.SEARCH_RESPONSE;
 
 export default class SearchResponse extends Message {
+  readonly hpaiStructure: HPAIStructure;
   readonly dibHardwareStructure: DIBHardwareStructure;
   readonly dibSupportedServiceFamilyStructure: DIBSupportedServiceFamilyStructure;
 
   constructor() {
     super(MESSAGE_TYPE);
+    this.hpaiStructure = new HPAIStructure();
     this.dibHardwareStructure = new DIBHardwareStructure();
     this.dibSupportedServiceFamilyStructure = new DIBSupportedServiceFamilyStructure();
-    this.structures.push(this.dibHardwareStructure, this.dibSupportedServiceFamilyStructure);
+    this.structures.push(this.hpaiStructure, this.dibHardwareStructure, this.dibSupportedServiceFamilyStructure);
   }
 
   setDefaultValues(): void {
