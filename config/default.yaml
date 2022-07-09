@@ -1,0 +1,33 @@
+server:
+  name: "Cheetah"
+knx:
+  devices:
+    - id: 00001
+      settings:
+        type: IPRouter
+        ipAddress: "192.168.1.138"
+        ipPort: 3671
+        multicast:
+          ipAddress: "224.0.23.12"
+        knxIndividualAddress: "255.255" # FF00h 0xFFFF
+        projectInstallationID: "00.01" #0x0001
+        knxSerialNumber: "0.250.0.0.0.1" #0x00fa00000001
+        macAddress: "06.06.06.03.14.71" #0x060606030e47
+        #macAddress: 0x0
+        friendlyName: SMARTHOMEKNX.DE
+    - id: 00002
+      settings:
+        type: IPObserver
+        ipAddress: "192.168.1.138"
+        ipPort: 3671
+        forwardIPAddress: "127.0.0.1"
+        forwardIPPort: 3671
+        multicastIPAddress: "224.0.23.12"
+    - id: 00003
+      settings:
+        type: IPObserver
+        ipAddress: "192.168.1.138"
+        ipPort: 8889
+        forwardIPAddress: "127.0.0.1"
+        forwardIPPort: 63815
+        multicastIPAddress: "224.0.23.12"
