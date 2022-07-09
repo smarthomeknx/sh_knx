@@ -22,20 +22,6 @@ const CONFIG: HeaderFieldConfigs = {
   TotalSize: NUMBER_FIELDS.TotalLength
 };
 
-/**
- * KNXnet/IP header
- * +-7-+-6-+-5-+-4-+-3-+-2-+-1-+-0-+-7-+-6-+-5-+-4-+-3-+-2-+-1-+-0-+
- * |   HEADER_SIZE_10              |   KNXNETIP_VERSION            |
- * |   (06h)                       |   (10h)                       |
- * +-7-+-6-+-5-+-4-+-3-+-2-+-1-+-0-+-7-+-6-+-5-+-4-+-3-+-2-+-1-+-0-+
- * |   SEARCH_REQUEST                                              |
- * |   (0201h)                                                     |
- * +-7-+-6-+-5-+-4-+-3-+-2-+-1-+-0-+-7-+-6-+-5-+-4-+-3-+-2-+-1-+-0-+
- * |   HEADER_SIZE_10 + sizeof(HPAI)                               |
- * |                                                               |
- * +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
- *
- */
 export default class HeaderStructure extends JSONStructure<HeaderData> {
   constructor() {
     super(STRUCTURE_NAME, STRUCTURE_KEY, CONFIG);

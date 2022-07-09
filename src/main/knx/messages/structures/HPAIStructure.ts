@@ -21,17 +21,6 @@ const CONFIG: HPAIFieldConfigs = {
   Port: NUMBER_FIELDS.IPPort
 };
 
-// Host Protocol Address Information (HPAI)
-// +-------------------------------+-------------------------------+
-// |               8               |   Host Protocol Code          |
-// |                               |   (1 octet)                   |
-// +-------------------------------+-------------------------------+
-// |                          IP Address                           |
-// |                          (4 octets)                           |
-// +---------------------------------------------------------------+
-// |                        IP port number                         |
-// |                          (2 octets)                           |
-// +---------------------------------------------------------------+
 export default class HPAIStructure extends JSONStructure<HPAIData> {
   constructor() {
     super(STRUCTURE_NAME, STRUCTURE_KEY, CONFIG);
