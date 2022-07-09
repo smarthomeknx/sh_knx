@@ -27,3 +27,8 @@ The first use case is to create the connection and trace all bus messages
  58 20 49 50 20 53 65 63 75 72 65 20 52 6f 75 74
  65 72 00 00 0a 02 02 02 03 02 04 02 05 02
 ```
+
+## KNX Specification
+
+_Source_ [KNX Standard Specification -  Version: 2.1 - 2021 - 04 - 08](https://my.knx.org/en/shop/knx-specifications)
+ _File_ The KNX Standard v2.1/03 Volume 3 System Specifications/03_08_02 Core v01.05.01 AS.pdf

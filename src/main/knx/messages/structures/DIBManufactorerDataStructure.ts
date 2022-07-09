@@ -22,18 +22,6 @@ const CONFIG: DIBManufactorerDataFieldConfigs = {
   DeviceTypeName: STRING_FIELDS.DeviceTypeName
 };
 
-// Device information (DIB)
-// +-7-+-6-+-5-+-4-+-3-+-2-+-1-+-0-+-7-+-6-+-5-+-4-+-3-+-2-+-1-+-0-+
-// |  Structure Length             |  Description Type Code        |
-// |  (1 octet)                    |  (1 octet)                    |
-// +-7-+-6-+-5-+-4-+-3-+-2-+-1-+-0-+-7-+-6-+-5-+-4-+-3-+-2-+-1-+-0-+
-// |  KNX Manufacturer ID                                          |
-// |  (2 Octets)                                                   |
-// +-7-+-6-+-5-+-4-+-3-+-2-+-1-+-0-+-7-+-6-+-5-+-4-+-3-+-2-+-1-+-0-+
-// |  Any manufacturer specific data                               |
-// |  (?? Octets)                                                  |
-// +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
-
 export default class DIBManufactorerDataStructure extends JSONStructure<DIBManufactorerData> {
   constructor() {
     super(STRUCTURE_NAME, STRUCTURE_KEY, CONFIG);

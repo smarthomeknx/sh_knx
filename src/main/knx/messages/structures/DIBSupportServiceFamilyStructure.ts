@@ -2,7 +2,6 @@ import * as knxSpec from "./KNX_SPECIFICATION";
 import Field, { FieldValue, NUMBER_FIELDS } from "./base/Field";
 import JSONStructure, { StructureJsonObject } from "./base/JSONStructure";
 import { JsonObject } from "./base/StructureField";
-import { runInThisContext } from "vm";
 
 const STRUCTURE_NAME = "SupportedServiceFamily (DIB)";
 const STRUCTURE_LENGTH = 0x0a; //,"10";
@@ -32,26 +31,6 @@ const CONFIG: SupportedServiceFamilyDIBFieldConfigs = {
   ServiceFamilies: [{ ServiceFamily: NUMBER_FIELDS.ServiceFamilyID, Version: NUMBER_FIELDS.ServiceFamilyVersion }]
 };
 
-// SupportServiceFamily (DIB)
-// +-7-+-6-+-5-+-4-+-3-+-2-+-1-+-0-+-7-+-6-+-5-+-4-+-3-+-2-+-1-+-0-+
-// |   Structure Length            |   Description Type Code       |
-// |   (1 octet)                   |   (1 octet)                   |
-// +-7-+-6-+-5-+-4-+-3-+-2-+-1-+-0-+-7-+-6-+-5-+-4-+-3-+-2-+-1-+-0-+
-// |   Service Family ID           |   Service Family version      |
-// |   (1 Octet)                   |   (1 Octet)                   |
-// +-7-+-6-+-5-+-4-+-3-+-2-+-1-+-0-+-7-+-6-+-5-+-4-+-3-+-2-+-1-+-0-+
-// |   Service Family ID           |   Service Family version      |
-// |   (1 Octet)                   |   (1 Octet)                   |
-// +-7-+-6-+-5-+-4-+-3-+-2-+-1-+-0-+-7-+-6-+-5-+-4-+-3-+-2-+-1-+-0-+
-// |   ....                        |   ....                        |
-// |                               |                               |
-// +-7-+-6-+-5-+-4-+-3-+-2-+-1-+-0-+-7-+-6-+-5-+-4-+-3-+-2-+-1-+-0-+
-// |   Service Family ID           |   Service Family version      |
-// |   (1 Octet)                   |   (1 Octet)                   |
-// +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
-// EXAMPLE FROM VirtualKNX
-// 0a 02 02 01 03 01 04 01 05 01
-
 export default class DIBSupportedServiceFamilyStructure extends JSONStructure<SupportedServiceFamilyDIBData> {
   constructor() {
     super(STRUCTURE_NAME, STRUCTURE_KEY, CONFIG);
@@ -61,21 +40,6 @@ export default class DIBSupportedServiceFamilyStructure extends JSONStructure<Su
     this.data.StructureLength = STRUCTURE_LENGTH;
     this.data.DescriptionTypeCode = knxSpec.DESCRIPTION_TYPE_CODE.SUPP_SVC_FAMILIES;
   }
-
-  // prepareFieldsFromBuffer(buffer: Buffer): void {
-  //   while (buffer.length > this.bufferSize) {
-  //     this.addField(FieldName.ServiceFamilyID);
-  //     this.addField(FieldName.ServiceFamilyVersion);
-  //   }
-  // }
-
-  // get DescriptionTypeCode(): number | undefined {
-  //   return this.getStructureFieldByFieldName(FieldName.DescriptionTypeCode).getNumber();
-  // }
-
-  // set DescriptionTypeCode(value: number | undefined) {
-  //   this.setFlavoredValueByFieldName(FieldName.DescriptionTypeCode, knxSpec.DESCRIPTION_TYPE_CODE.DEVICE_INFO);
-  // }
 
   get bufferSize(): number {
     if (this.data.StructureLength) {
