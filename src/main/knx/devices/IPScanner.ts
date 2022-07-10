@@ -71,6 +71,10 @@ export default class IPScanner {
     await this.udpDevice.startListener();
   }
 
+  async powerOff(): Promise<void> {
+    await this.udpDevice.stopListener();
+  }
+
   onSearchResponse = (request: UDPRequest, response: UDPResponse, content: SearchResponse): void => {
     const result = {
       hardware: content.dibHardwareStructure.data,
@@ -80,8 +84,9 @@ export default class IPScanner {
     if (result.hardware.DeviceMACAddress) {
       this.scanResults.set(result.hardware.DeviceMACAddress, result);
       this.requestServerDescription(content);
+      TRACE.info("Found device and added to result!");
     } else {
-      STATUS_LOG.warn("Search Response contains hardware without Mac Address: This result will be ignored!");
+      TRACE.warn("Search Response contains hardware without Mac Address: This result will be ignored!");
     }
   };
 
@@ -92,13 +97,13 @@ export default class IPScanner {
     if (macAddress) {
       const scanResult = this.scanResults.get(macAddress);
       if (scanResult) {
-        STATUS_LOG.info("Updating scan result with description response information.");
+        TRACE.info("Updating scan result with description response information.");
         scanResult.manufactorerData = content.dibManufactorerData.data;
       } else {
         throw new Error(`MacAddress '${macAddress}' not found in existing scan result`);
       }
     } else {
-      STATUS_LOG.warn("Description Response contains hardware without Mac Address: This result will be ignored!");
+      TRACE.warn("Description Response contains hardware without Mac Address: This result will be ignored!");
     }
   };
 
@@ -122,13 +127,15 @@ export default class IPScanner {
   async search(timeout?: number): Promise<void> {
     await this.udpDevice.triggerSearchRequest(timeout);
 
-    await setTimeout(
-      () => {
-        STATUS_LOG.info("Stop waiting for search responses. Continue with next steps...?");
-      },
-      timeout ? timeout : SEARCH_TIMEOUT
-    );
-    return;
+    // await setTimeout(
+    //   () => {
+    //     STATUS_LOG.info("Stop waiting for search responses. Continue with next steps...?");
+    //   },
+    //   timeout ? timeout : SEARCH_TIMEOUT
+    // );
+    return new Promise((resolve) => {
+      setTimeout(resolve, timeout ? timeout : SEARCH_TIMEOUT);
+    });
   }
 
   /**

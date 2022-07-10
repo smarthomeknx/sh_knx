@@ -28,6 +28,8 @@ const scanner = new IPScanner("IP_SCANNER", SCANNER_CONFIG);
     await scanner.powerOn();
     await scanner.search();
     console.log("STOP SCANNING, FOUND: " + JSON.stringify(scanner.scanResults.values));
+    await scanner.powerOff();
+    console.log("Scanner turned off");
   } catch (e) {
     console.log("Message sent error");
   }

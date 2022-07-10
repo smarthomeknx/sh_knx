@@ -70,7 +70,7 @@ export default class UDBDevice<Type extends UDPDeviceSettings> extends Device<UD
     this.innerSend = promisify<Buffer, number, number, number, string>(udpSocket.send).bind(udpSocket);
   };
 
-  startListener = async (): Promise<void> => {
+  async startListener(): Promise<void> {
     this.messageHandler.addTypedCallback(SERVICE_TYPE.SEARCH_RESPONSE, this.onSearchResponse);
     this.messageHandler.addTypedCallback(SERVICE_TYPE.DESCRIPTION_RESPONSE, this.onDescriptionResponse);
 
@@ -93,7 +93,11 @@ export default class UDBDevice<Type extends UDPDeviceSettings> extends Device<UD
     }
     this.enableSender(this.udpSocket);
     STATUS_LOG.info(`UDPDevice ${this.settings.friendlyName} enabled sender`);
-  };
+  }
+
+  stopListener(): void {
+    this.udpSocket.close();
+  }
 
   async triggerSearchRequest(timeout?: number): Promise<void> {
     const message: SearchRequest = new SearchRequest();
