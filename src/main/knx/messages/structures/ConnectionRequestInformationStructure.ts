@@ -1,5 +1,4 @@
 import * as knxSpec from "./KNX_SPECIFICATION";
-import * as constants from "../../utils/constants";
 import Field, { DOT_SEPERATED_BYTES_FIEDS, FieldValue, NUMBER_FIELDS, STRING_FIELDS } from "./base/Field";
 import JSONStructure, { StructureJsonObject } from "./base/JSONStructure";
 
@@ -9,15 +8,9 @@ const STRUCTURE_KEY = "ConnectionRequestInformationCRI";
 
 interface ConnectionRequestInformationData extends StructureJsonObject {
   StructureLength: number;
-  // TDODO DescriptionTypeCode: knxSpec.DESCRIPTION_TYPE_CODE;
-  KNXMedium: knxSpec.KNX_MEDIUM_CODE;
-  DeviceStatus: knxSpec.KNX_DEVICE_STATUS;
-  KNXIndividualAddress: string;
-  ProjectInstallationIdentifier: string;
-  DeviceKNXSerialNumber: string;
-  DeviceRoutingMulticastAddress: string;
-  DeviceMACAddress: string;
-  DeviceFriendlyName: string;
+  ConnectionTypeCode: knxSpec.CONNECTION_TYPE_CODE;
+  KNXLayer: knxSpec.TUNNELING_LAYER; // maybe further layers would be requiered later on
+  Reserved: knxSpec.KNX_RESERVED;
 }
 
 type ConnectionRequestInformationDataFieldConfigs = {
@@ -25,15 +18,9 @@ type ConnectionRequestInformationDataFieldConfigs = {
 };
 const CONFIG: ConnectionRequestInformationDataFieldConfigs = {
   StructureLength: NUMBER_FIELDS.StructureLength,
-  DescriptionTypeCode: NUMBER_FIELDS.DescriptionTypeCode,
-  KNXMedium: NUMBER_FIELDS.KNXMedium,
-  DeviceStatus: NUMBER_FIELDS.DeviceStatus,
-  KNXIndividualAddress: DOT_SEPERATED_BYTES_FIEDS.KNXIndividualAddress,
-  ProjectInstallationIdentifier: DOT_SEPERATED_BYTES_FIEDS.ProjectInstallationIdentifier,
-  DeviceKNXSerialNumber: DOT_SEPERATED_BYTES_FIEDS.DeviceKNXSerialNumber,
-  DeviceRoutingMulticastAddress: DOT_SEPERATED_BYTES_FIEDS.DeviceRoutingMulticastAddress,
-  DeviceMACAddress: DOT_SEPERATED_BYTES_FIEDS.DeviceMACAddress,
-  DeviceFriendlyName: STRING_FIELDS.DeviceFriendlyName
+  ConnectionTypeCode: NUMBER_FIELDS.ConnectionTypeCode,
+  KNXLayer: NUMBER_FIELDS.KNXLayer,
+  Reserved: NUMBER_FIELDS.Reserved
 };
 export default class ConnectionRequestInformationStructure extends JSONStructure<ConnectionRequestInformationData> {
   constructor() {
@@ -41,10 +28,32 @@ export default class ConnectionRequestInformationStructure extends JSONStructure
   }
 
   setDefaultValues(): void {
-    // TODO this.data.StructureLength = STRUCTURE_LENGTH;
-    this.data.DescriptionTypeCode = knxSpec.DESCRIPTION_TYPE_CODE.DEVICE_INFO;
-    this.data.KNXMedium = knxSpec.KNX_MEDIUM_CODE.TP1;
-    this.data.DeviceStatus = knxSpec.KNX_DEVICE_STATUS.PROG_MODE_OFF;
-    this.data.DeviceRoutingMulticastAddress = constants.MULTICAST_IP_ADDRESS;
+    // this.data.StructureLength = 0x04;
+    // this.data.ConnectionTypeCode = knxSpec.CONNECTION_TYPE_CODE.TUNNEL_CONNECTION;
+    // this.data.KNXLayer = knxSpec.TUNNELING_LAYER.TUNNEL_LINKLAYER;
+    // this.data.Reserved = knxSpec.KNX_RESERVED.RESERVED;
+  }
+
+  // get bufferSize(): number {
+  //   if (this.data.StructureLength) {
+  //     return this.data.StructureLength;
+  //   } else {
+  //     return STRUCTURE_LENGTH;
+  //   }
+  // }
+
+  setDefaultValuesByConnectionType(type: knxSpec.CONNECTION_TYPE_CODE): void {
+    switch (type) {
+      case knxSpec.CONNECTION_TYPE_CODE.TUNNEL_CONNECTION:
+        this.setDefaultValues4TunnelConnection();
+        break;
+    }
+  }
+
+  setDefaultValues4TunnelConnection() {
+    this.data.StructureLength = 0x04;
+    this.data.ConnectionTypeCode = knxSpec.CONNECTION_TYPE_CODE.TUNNEL_CONNECTION;
+    this.data.KNXLayer = knxSpec.TUNNELING_LAYER.TUNNEL_LINKLAYER;
+    this.data.Reserved = knxSpec.KNX_RESERVED.RESERVED;
   }
 }

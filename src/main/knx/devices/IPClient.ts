@@ -1,20 +1,27 @@
+import dgram from "dgram";
 import { STATUS_LOG, TRACE } from "../utils/logging";
+import { SERVICE_TYPE } from "../messages/structures/KNX_SPECIFICATION";
 import UDPRequest from "../messages/UDPRequest";
+import SearchRequest from "../messages/SearchRequest";
 import SearchResponse from "../messages/SearchResponse";
 import UDPMessageHandler, { SPECIAL_TYPE } from "../messages/utils/UDPMessageHandler";
 import UDPResponse from "../messages/UDPResponse";
 import UDPDevice, { UDPDeviceSettings } from "./base/UDPDevice";
 import TCPDevice, { TCPDeviceSettings } from "./base/TCPDevice";
+import DescriptionRequest from "../messages/DescriptionRequest";
 import DescriptionResponse from "../messages/DescriptionResponse";
+import IPServer from "./IPServer";
 import { DeviceSettings } from "./base/Device";
-import { DIBHardwareData } from "../messages/structures/DIBHardwareStructure";
-import { SupportedServiceFamilyDIBData } from "../messages/structures/DIBSupportServiceFamilyStructure";
-import { DIBManufactorerData } from "../messages/structures/DIBManufactorerDataStructure";
+import ConnectionResponse from "../messages/ConnectionResponse";
 
+const SEARCH_TIMEOUT = 100000;
 const DEVICE_TYPE = "IPScanner";
-const SEARCH_TIMEOUT = 10000;
 
 export interface IPScannerSettings extends DeviceSettings {
+  // readonly remote?: {
+  //   ipAddress: string;
+  //   port: number;
+  // };
   readonly local: {
     ipAddress: string;
     port: number;
@@ -25,12 +32,6 @@ export interface IPScannerSettings extends DeviceSettings {
   };
 }
 
-export interface IPScanResult {
-  hardware: Partial<DIBHardwareData>;
-  serviceFamilies: Partial<SupportedServiceFamilyDIBData>;
-  manufactorerData: Partial<DIBManufactorerData>;
-}
-
 export default class IPScanner {
   //extends TCPDevice<TCPDeviceSettings> {
   //log: winston.Logger;
@@ -38,8 +39,7 @@ export default class IPScanner {
   // udpSettings: UDPDeviceSettings;
   settings: IPScannerSettings;
   pendingSearchResponseSince = -1;
-  //searchResponses: SearchResponse[] = [];
-  scanResults: Map<string, IPScanResult> = new Map(); //IPScanResult[] = [];
+  searchResponses: SearchResponse[] = [];
   //tcpServer: TCPDevice<TCPDeviceSettings>;
   udpDevice: UDPDevice<UDPDeviceSettings>;
 
@@ -65,41 +65,45 @@ export default class IPScanner {
     // add callbacks:
     this.udpDevice.searchResponseCallback = this.onSearchResponse;
     this.udpDevice.descriptionResponseCallback = this.onDescriptionResponse;
+    this.udpDevice.connectionResponseCallback = this.onConnectionResponse;
+
+    // const tcpSettings = {
+    //   local: {
+    //     ipAddress: this.settings.local.ipAddress,
+    //     port: this.settings.local.port
+    //   },
+    //   friendlyName: this.settings.friendlyName + "_TCP",
+    //   knxIndividualAddress: this.settings.knxIndividualAddress,
+    //   knxSerialNumber: this.settings.knxSerialNumber,
+    //   macAddress: this.settings.macAddress,
+    //   projectInstallationID: this.settings.projectInstallationID,
+    //   type: DEVICE_TYPE + "_TCP"
+    // };
+    // this.tcpServer = new TCPDevice(this.id + "_TCP", tcpSettings);
   }
 
   async powerOn(): Promise<void> {
+    //this.messageHandler.addTypedCallback(SERVICE_TYPE.SEARCH_RESPONSE, this.onSearchResponse);
+    //this.messageHandler.addTypedCallback(SERVICE_TYPE.DESCRIPTION_RESPONSE, this.onDescriptionResponse);
+    //await this.startServer();
+    //await this.tcpServer.listen();
     await this.udpDevice.startListener();
   }
 
   onSearchResponse = (request: UDPRequest, response: UDPResponse, content: SearchResponse): void => {
-    const result = {
-      hardware: content.dibHardwareStructure.data,
-      serviceFamilies: content.dibSupportedServiceFamilyStructure.data,
-      manufactorerData: {}
-    };
-    if (result.hardware.DeviceMACAddress) {
-      this.scanResults.set(result.hardware.DeviceMACAddress, result);
-      this.requestServerDescription(content);
-    } else {
-      STATUS_LOG.warn("Search Response contains hardware without Mac Address: This result will be ignored!");
-    }
+    this.searchResponses.push(content);
+    this.requestServerDescription(content);
+    this.connect(content);
   };
 
   onDescriptionResponse = (request: UDPRequest, response: UDPResponse, content: DescriptionResponse): void => {
-    request.log.debug("Handling DescriptionResponse");
+    request.log.debug("Handle DescriptionResponse");
+    // TODO: Check if IPScanner is done and now some other IPDevice should take over with the concrete connect
+  };
 
-    const macAddress = content.dibHardwareStructure.data.DeviceMACAddress;
-    if (macAddress) {
-      const scanResult = this.scanResults.get(macAddress);
-      if (scanResult) {
-        STATUS_LOG.info("Updating scan result with description response information.");
-        scanResult.manufactorerData = content.dibManufactorerData.data;
-      } else {
-        throw new Error(`MacAddress '${macAddress}' not found in existing scan result`);
-      }
-    } else {
-      STATUS_LOG.warn("Description Response contains hardware without Mac Address: This result will be ignored!");
-    }
+  onConnectionResponse = (request: UDPRequest, response: UDPResponse, content: ConnectionResponse): void => {
+    request.log.debug("Handle ConnectionResponse");
+    // TODO: Check if IPScanner is done and now some other IPDevice should take over with the concrete connect
   };
 
   /**
@@ -120,15 +124,7 @@ export default class IPScanner {
    *
    */
   async search(timeout?: number): Promise<void> {
-    await this.udpDevice.triggerSearchRequest(timeout);
-
-    await setTimeout(
-      () => {
-        STATUS_LOG.info("Stop waiting for search responses. Continue with next steps...?");
-      },
-      timeout ? timeout : SEARCH_TIMEOUT
-    );
-    return;
+    await this.udpDevice.triggerSearchRequest();
   }
 
   /**
@@ -178,5 +174,22 @@ export default class IPScanner {
     //   macAddress: "06.06.06.03.14.71",
     //   friendlyName: "SMARTHOMEKNX.DE"
     // });
+  }
+
+  async connect(searchResponse: SearchResponse): Promise<void> {
+    // connect
+    STATUS_LOG.info("Start to connect...");
+    if (!searchResponse.hpaiStructure.data.IPAddress || !searchResponse.hpaiStructure.data.Port) {
+      throw new Error(
+        `Can't request description via TCPDevice, because the hpaiStructure of the searchResponse doesn#t provide IPAddress and Port`
+      );
+    }
+
+    const remote = {
+      ipAddress: searchResponse.hpaiStructure.data.IPAddress,
+      port: searchResponse.hpaiStructure.data.Port
+    };
+
+    await this.udpDevice.triggerConnectionRequest(remote);
   }
 }

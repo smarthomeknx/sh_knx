@@ -7,7 +7,7 @@ const STRUCTURE_NAME = "Other Device Information (DIB)";
 const STRUCTURE_LENGTH = 0x8; //structure length (DIB hardware)
 const STRUCTURE_KEY = "OtherDeviceInformationDIB";
 
-interface DIBManufactorerData extends StructureJsonObject {
+export interface DIBManufactorerData extends StructureJsonObject {
   StructureLength: number;
   DescriptionTypeCode: knxSpec.DESCRIPTION_TYPE_CODE;
   KNXManufactorerID: number;

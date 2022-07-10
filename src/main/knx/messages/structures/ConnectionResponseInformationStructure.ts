@@ -3,13 +3,13 @@ import * as constants from "../../utils/constants";
 import Field, { DOT_SEPERATED_BYTES_FIEDS, FieldValue, NUMBER_FIELDS, STRING_FIELDS } from "./base/Field";
 import JSONStructure, { StructureJsonObject } from "./base/JSONStructure";
 
-const STRUCTURE_NAME = "Hardware (DIB)";
-const STRUCTURE_LENGTH = 0x36; //structure length (DIB hardware)
-const STRUCTURE_KEY = "HardwareDIB";
+const STRUCTURE_NAME = "ConnectionResponseInformation (CRD)";
+//const STRUCTURE_LENGTH = // VARIABLE 0x36; //structure length (CRD)
+const STRUCTURE_KEY = "ConnectionResponseInformationCRD";
 
-export interface DIBHardwareData extends StructureJsonObject {
-  //StructureLength: number;
-  DescriptionTypeCode: knxSpec.DESCRIPTION_TYPE_CODE;
+interface ConnectionResponseInformationData extends StructureJsonObject {
+  StructureLength: number;
+  // TDODO DescriptionTypeCode: knxSpec.DESCRIPTION_TYPE_CODE;
   KNXMedium: knxSpec.KNX_MEDIUM_CODE;
   DeviceStatus: knxSpec.KNX_DEVICE_STATUS;
   KNXIndividualAddress: string;
@@ -20,8 +20,10 @@ export interface DIBHardwareData extends StructureJsonObject {
   DeviceFriendlyName: string;
 }
 
-type DIBHardwareDataFieldConfigs = { [id in keyof DIBHardwareData]: Field<FieldValue> };
-const CONFIG: DIBHardwareDataFieldConfigs = {
+type ConnectionResponseInformationDataFieldConfigs = {
+  [id in keyof ConnectionResponseInformationData]: Field<FieldValue>;
+};
+const CONFIG: ConnectionResponseInformationDataFieldConfigs = {
   StructureLength: NUMBER_FIELDS.StructureLength,
   DescriptionTypeCode: NUMBER_FIELDS.DescriptionTypeCode,
   KNXMedium: NUMBER_FIELDS.KNXMedium,
@@ -33,13 +35,13 @@ const CONFIG: DIBHardwareDataFieldConfigs = {
   DeviceMACAddress: DOT_SEPERATED_BYTES_FIEDS.DeviceMACAddress,
   DeviceFriendlyName: STRING_FIELDS.DeviceFriendlyName
 };
-export default class DIBHardwareStructure extends JSONStructure<DIBHardwareData> {
+export default class ConnectionResponseInformationStructure extends JSONStructure<ConnectionResponseInformationData> {
   constructor() {
     super(STRUCTURE_NAME, STRUCTURE_KEY, CONFIG);
   }
 
   setDefaultValues(): void {
-    this.data.StructureLength = STRUCTURE_LENGTH;
+    // TODO this.data.StructureLength = STRUCTURE_LENGTH;
     this.data.DescriptionTypeCode = knxSpec.DESCRIPTION_TYPE_CODE.DEVICE_INFO;
     this.data.KNXMedium = knxSpec.KNX_MEDIUM_CODE.TP1;
     this.data.DeviceStatus = knxSpec.KNX_DEVICE_STATUS.PROG_MODE_OFF;

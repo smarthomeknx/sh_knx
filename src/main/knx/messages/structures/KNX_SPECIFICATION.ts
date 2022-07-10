@@ -13,6 +13,10 @@ export const KNXIP_CONSTANTS = {
   KNX_NET_IP_SETUP_MULTICAST_ADDRESS: "224.0.23.12"
 };
 
+export enum KNX_RESERVED {
+  RESERVED = 0x00
+}
+
 export enum SERVICE_TYPE {
   UNDEFINED = 0x0000,
   SEARCH_REQUEST = 0x0201,
@@ -91,28 +95,34 @@ export enum KNX_DEVICE_STATUS {
   PROG_MODE_OFF = 0x00
 }
 
-const CONNECTION_TYPE = {
-  DEVICE_MGMT_CONNECTION: 0x03,
-  TUNNEL_CONNECTION: 0x04,
-  REMOTE_LOGGING_CONNECTION: 0x06,
-  REMOTE_CONFIGURATION_CONNECTION: 0x07,
-  OBJECT_SERVER_CONNECTION: 0x08
-};
+export enum CONNECTION_TYPE_CODE {
+  DEVICE_MGMT_CONNECTION = 0x03,
+  TUNNEL_CONNECTION = 0x04,
+  REMOTE_LOGGING_CONNECTION = 0x06,
+  REMOTE_CONFIGURATION_CONNECTION = 0x07,
+  OBJECT_SERVER_CONNECTION = 0x08
+}
 
-const RESPONSE_CODE = {
-  NO_ERROR: 0x00, // E_NO_ERROR - The connection was established succesfully
-  E_HOST_PROTOCOL_TYPE: 0x01,
-  E_VERSION_NOT_SUPPORTED: 0x02,
-  E_SEQUENCE_NUMBER: 0x04,
-  E_CONNSTATE_LOST: 0x15, // typo in eibd/libserver/eibnetserver.cpp:394, forgot 0x prefix ??? "uchar res = 21;"
-  E_CONNECTION_ID: 0x21, // - The KNXnet/IP server device could not find an active data connection with the given ID
-  E_CONNECTION_TYPE: 0x22, // - The requested connection type is not supported by the KNXnet/IP server device
-  E_CONNECTION_OPTION: 0x23, // - The requested connection options is not supported by the KNXnet/IP server device
-  E_NO_MORE_CONNECTIONS: 0x24, //  - The KNXnet/IP server could not accept the new data connection (Maximum reached)
-  E_DATA_CONNECTION: 0x26, // - The KNXnet/IP server device detected an erro concerning the Dat connection with the given ID
-  E_KNX_CONNECTION: 0x27, // - The KNXnet/IP server device detected an error concerning the KNX Bus with the given ID
-  E_TUNNELING_LAYER: 0x29
-};
+export enum TUNNELING_LAYER {
+  TUNNEL_LINKLAYER = 0x02,
+  TUNNEL_RAW = 0x04,
+  TUNNEL_BUSMONITOR = 0x80
+}
+
+const enum RESPONSE_CODE {
+  NO_ERROR = 0x00, // E_NO_ERROR - The connection was established succesfully
+  E_HOST_PROTOCOL_TYPE = 0x01,
+  E_VERSION_NOT_SUPPORTED = 0x02,
+  E_SEQUENCE_NUMBER = 0x04,
+  E_CONNSTATE_LOST = 0x15, // typo in eibd/libserver/eibnetserver.cpp:394, forgot 0x prefix ??? "uchar res = 21;"
+  E_CONNECTION_ID = 0x21, // - The KNXnet/IP server device could not find an active data connection with the given ID
+  E_CONNECTION_TYPE = 0x22, // - The requested connection type is not supported by the KNXnet/IP server device
+  E_CONNECTION_OPTION = 0x23, // - The requested connection options is not supported by the KNXnet/IP server device
+  E_NO_MORE_CONNECTIONS = 0x24, //  - The KNXnet/IP server could not accept the new data connection (Maximum reached)
+  E_DATA_CONNECTION = 0x26, // - The KNXnet/IP server device detected an erro concerning the Dat connection with the given ID
+  E_KNX_CONNECTION = 0x27, // - The KNXnet/IP server device detected an error concerning the KNX Bus with the given ID
+  E_TUNNELING_LAYER = 0x29
+}
 
 const MESSAGE_CODE = {
   "L_Raw.req": 0x10,

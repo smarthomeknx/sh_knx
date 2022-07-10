@@ -2,6 +2,7 @@ import IPScanner from "../devices/IPScanner";
 import { IPScannerSettings } from "../devices/IPScanner";
 import * as constants from "../utils/constants";
 import * as knxSpec from "../messages/structures/KNX_SPECIFICATION";
+import { stringify } from "querystring";
 
 // TODO Config configurable
 const SCANNER_CONFIG: IPScannerSettings = {
@@ -26,6 +27,7 @@ const scanner = new IPScanner("IP_SCANNER", SCANNER_CONFIG);
   try {
     await scanner.powerOn();
     await scanner.search();
+    console.log("STOP SCANNING, FOUND: " + JSON.stringify(scanner.scanResults.values));
   } catch (e) {
     console.log("Message sent error");
   }

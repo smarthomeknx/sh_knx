@@ -100,7 +100,13 @@ export const NUMBER_FIELDS = {
   KNXManufactorerID: new NumberField({ name: "KNXMedium", maxLength: 2 }),
   DeviceStatus: new NumberField({ name: "DeviceStatus", maxLength: 1 }),
   ServiceFamilyID: new NumberField({ name: "ServiceFamilyID", maxLength: 1 }),
-  ServiceFamilyVersion: new NumberField({ name: "ServiceFamilyVersion", maxLength: 1 })
+  ServiceFamilyVersion: new NumberField({ name: "ServiceFamilyVersion", maxLength: 1 }),
+
+  ConnectionTypeCode: new NumberField({ name: "ConnectionTypeCode", maxLength: 1 }),
+
+  KNXLayer: new NumberField({ name: "KNXLayer", maxLength: 1 }),
+
+  Reserved: new NumberField({ name: "Reserved", maxLength: 1 })
 };
 
 export const STRING_FIELDS = {

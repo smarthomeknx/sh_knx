@@ -13,7 +13,7 @@ export interface ServiceFamily extends JsonObject {
 }
 
 export interface SupportedServiceFamilyDIBData extends StructureJsonObject {
-  StructureLength: number;
+  // StructureLength: number;
   DescriptionTypeCode: knxSpec.DESCRIPTION_TYPE_CODE;
   ServiceFamilies: ServiceFamily[];
 }

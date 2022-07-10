@@ -13,6 +13,8 @@ import UDPResponse from "../../messages/UDPResponse";
 import DescriptionRequest from "../../messages/DescriptionRequest";
 import { RemoteInfo } from "../../utils/types";
 import DescriptionResponse from "../../messages/DescriptionResponse";
+import ConnectionRequest from "../../messages/ConnectionRequest";
+import ConnectionResponse from "../../messages/ConnectionResponse";
 
 const DEFAULT_SEARCH_TIMEOUT = 10000; // 10 seconds
 
@@ -37,6 +39,12 @@ export type DescriptionResponseCallback = (
   content: DescriptionResponse
 ) => void;
 
+export type ConnectionResponseCallback = (
+  request: UDPRequest,
+  response: UDPResponse,
+  content: ConnectionResponse
+) => void;
+
 export default class UDBDevice<Type extends UDPDeviceSettings> extends Device<UDPDeviceSettings> {
   readonly udpLogger: Logger;
   readonly udpSocket: dgram.Socket;
@@ -46,6 +54,7 @@ export default class UDBDevice<Type extends UDPDeviceSettings> extends Device<UD
   innerSend?: SentType;
   searchResponseCallback?: SearchResponseCallback;
   descriptionResponseCallback?: DescriptionResponseCallback;
+  connectionResponseCallback?: ConnectionResponseCallback;
 
   constructor(readonly id: string, readonly settings: Type) {
     super(id, settings);
@@ -86,16 +95,7 @@ export default class UDBDevice<Type extends UDPDeviceSettings> extends Device<UD
     STATUS_LOG.info(`UDPDevice ${this.settings.friendlyName} enabled sender`);
   };
 
-  async triggerDescriptionRequest(remote: RemoteInfo): Promise<void> {
-    const message: DescriptionRequest = new DescriptionRequest();
-    message.setDefaultValues();
-    message.hpaiStructure.data.IPAddress = this.settings.ipAddress;
-    message.hpaiStructure.data.Port = this.settings.port;
-    const buffer: Buffer = message.toBuffer();
-    await this.send(message.serviceType, buffer, remote.port, remote.ipAddress);
-  }
-
-  async triggerSearchRequest(): Promise<void> {
+  async triggerSearchRequest(timeout?: number): Promise<void> {
     const message: SearchRequest = new SearchRequest();
     message.setDefaultValues();
     message.hpaiStructure.data.IPAddress = this.settings.ipAddress;
@@ -109,9 +109,35 @@ export default class UDBDevice<Type extends UDPDeviceSettings> extends Device<UD
     this.pendingSearchResponseSince = Date.now();
     // set timeout to ignore search responses after the SEARCH_TIMEOUT
     this.udpLogger.info("Triggered search request with timeout %s", this.defaultSearchTimeout);
-    await setTimeout(() => {
-      this.pendingSearchResponseSince = -1;
-    }, this.defaultSearchTimeout);
+    await setTimeout(
+      () => {
+        this.pendingSearchResponseSince = -1;
+      },
+      timeout ? timeout : this.defaultSearchTimeout
+    );
+  }
+
+  async triggerDescriptionRequest(remote: RemoteInfo): Promise<void> {
+    const message: DescriptionRequest = new DescriptionRequest();
+    message.setDefaultValues();
+    message.hpaiStructure.data.IPAddress = this.settings.ipAddress;
+    message.hpaiStructure.data.Port = this.settings.port;
+    const buffer: Buffer = message.toBuffer();
+    await this.send(message.serviceType, buffer, remote.port, remote.ipAddress);
+  }
+
+  async triggerConnectionRequest(remote: RemoteInfo): Promise<void> {
+    const message: ConnectionRequest = new ConnectionRequest();
+    message.setDefaultValues();
+    message.hpaiEndpointStructure.data.IPAddress = this.settings.ipAddress;
+    message.hpaiEndpointStructure.data.Port = this.settings.port;
+    message.hpaiControlStructure.data.IPAddress = this.settings.ipAddress;
+    message.hpaiControlStructure.data.Port = this.settings.port;
+    // don't change the port, seems 3671 is default from KNX: message.hpaiStructure.data.Port = this.settings.ipPort;
+
+    const buffer: Buffer = message.toBuffer();
+
+    await this.send(message.serviceType, buffer, remote.port, remote.ipAddress);
   }
 
   onSearchResponse = (request: UDPRequest, response: UDPResponse): void => {
@@ -161,6 +187,24 @@ export default class UDBDevice<Type extends UDPDeviceSettings> extends Device<UD
       this.descriptionResponseCallback(request, response, incomingDescriptionResponse);
     } else {
       TRACE.debug(`Message is not casted to DescriptionResponse as no callback is provided`);
+    }
+  };
+
+  onConnectionResponse = (request: UDPRequest, response: UDPResponse): void => {
+    request.log.debug("Handle ConnectionResponse");
+
+    if (this.connectionResponseCallback) {
+      const incomingConnectionResponse = new ConnectionResponse();
+      UDPMessageHandler.setValuesFromBuffer(request, incomingConnectionResponse);
+      TRACE.debug(`ConnectionResponse: \n${incomingConnectionResponse.toYAML(false)}`);
+      this.udpLogger.info(
+        "Received connection response from %s:%s",
+        request.info.address, //incomingConnectionResponse.hpaiStructure.data.IPAddress,
+        request.info.port //incomingConnectionResponse.hpaiStructure.data.Port
+      );
+      this.connectionResponseCallback(request, response, incomingConnectionResponse);
+    } else {
+      TRACE.debug(`Message is not casted to ConnectionResponse as no callback is provided`);
     }
   };
 
