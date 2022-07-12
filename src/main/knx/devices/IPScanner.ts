@@ -124,7 +124,7 @@ export default class IPScanner {
    * an new KNX device (e.g. IPRouter) is found.
    *
    */
-  async search(timeout?: number): Promise<void> {
+  async search(timeout?: number): Promise<IPScanResult[]> {
     await this.udpDevice.triggerSearchRequest(timeout);
 
     // await setTimeout(
@@ -134,8 +134,16 @@ export default class IPScanner {
     //   timeout ? timeout : SEARCH_TIMEOUT
     // );
     return new Promise((resolve) => {
-      setTimeout(resolve, timeout ? timeout : SEARCH_TIMEOUT);
+      const resolveWithResult = () => {
+        resolve(this.results);
+      };
+      setTimeout(resolveWithResult, timeout ? timeout : SEARCH_TIMEOUT);
     });
+  }
+
+  get results(): IPScanResult[] {
+    const results: IPScanResult[] = [...this.scanResults.values()];
+    return results;
   }
 
   /**
