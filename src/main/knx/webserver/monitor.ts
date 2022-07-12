@@ -1,3 +1,4 @@
+import { STATUS_LOG, TRACE } from "../utils/logging";
 import IPScanner from "../devices/IPScanner";
 import { IPScannerSettings } from "../devices/IPScanner";
 import * as constants from "../utils/constants";
@@ -25,12 +26,20 @@ const SCANNER_CONFIG: IPScannerSettings = {
 const scanner = new IPScanner("IP_SCANNER", SCANNER_CONFIG);
 (async () => {
   try {
+    STATUS_LOG.info("Scanning for KNX Devices");
     await scanner.powerOn();
+
     const results = await scanner.search();
     //console.log("STOP SCANNING, FOUND: " + JSON.stringify(scanner.results));
     //console.log("STOP SCANNING, RESULT: " + JSON.stringify(results));
     await scanner.powerOff();
-    console.log("Scanner turned off");
+    STATUS_LOG.info("Finished scanning. Found %s KNX Devices", scanner.scanResults.size);
+    const CONNECTION_SELECTION = "112.179.213.220.139.63"; // should be done via API / Config
+    STATUS_LOG.info(
+      "Start connection to device '%s'. Details: %s",
+      CONNECTION_SELECTION,
+      scanner.scanResults.get(CONNECTION_SELECTION)
+    );
   } catch (e) {
     console.log("Message sent error");
   }
