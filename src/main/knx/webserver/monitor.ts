@@ -26,8 +26,9 @@ const scanner = new IPScanner("IP_SCANNER", SCANNER_CONFIG);
 (async () => {
   try {
     await scanner.powerOn();
-    await scanner.search();
-    console.log("STOP SCANNING, FOUND: " + JSON.stringify(scanner.scanResults.values));
+    const results = await scanner.search();
+    //console.log("STOP SCANNING, FOUND: " + JSON.stringify(scanner.results));
+    //console.log("STOP SCANNING, RESULT: " + JSON.stringify(results));
     await scanner.powerOff();
     console.log("Scanner turned off");
   } catch (e) {
