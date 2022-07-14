@@ -1,7 +1,6 @@
 import { STATUS_LOG, TRACE } from "../utils/logging";
 import UDPRequest from "../messages/UDPRequest";
 import SearchResponse from "../messages/SearchResponse";
-import UDPMessageHandler, { SPECIAL_TYPE } from "../messages/utils/UDPMessageHandler";
 import UDPResponse from "../messages/UDPResponse";
 import UDPDevice, { UDPDeviceSettings } from "./base/UDPDevice";
 import TCPDevice, { TCPDeviceSettings } from "./base/TCPDevice";
@@ -10,6 +9,7 @@ import { DeviceSettings } from "./base/Device";
 import { DIBHardwareData } from "../messages/structures/DIBHardwareStructure";
 import { SupportedServiceFamilyDIBData } from "../messages/structures/DIBSupportServiceFamilyStructure";
 import { DIBManufactorerData } from "../messages/structures/DIBManufactorerDataStructure";
+import { HPAIData } from "../messages/structures/HPAIStructure";
 
 const DEVICE_TYPE = "IPScanner";
 const SEARCH_TIMEOUT = 10000;
@@ -26,19 +26,16 @@ export interface IPScannerSettings extends DeviceSettings {
 }
 
 export interface IPScanResult {
+  hpai: Partial<HPAIData>;
   hardware: Partial<DIBHardwareData>;
   serviceFamilies: Partial<SupportedServiceFamilyDIBData>;
   manufactorerData: Partial<DIBManufactorerData>;
 }
 
 export default class IPScanner {
-  //extends TCPDevice<TCPDeviceSettings> {
-  //log: winston.Logger;
   readonly id: string;
-  // udpSettings: UDPDeviceSettings;
   settings: IPScannerSettings;
   pendingSearchResponseSince = -1;
-  //searchResponses: SearchResponse[] = [];
   scanResults: Map<string, IPScanResult> = new Map(); //IPScanResult[] = [];
   //tcpServer: TCPDevice<TCPDeviceSettings>;
   udpDevice: UDPDevice<UDPDeviceSettings>;
@@ -75,38 +72,6 @@ export default class IPScanner {
     await this.udpDevice.stopListener();
   }
 
-  onSearchResponse = (request: UDPRequest, response: UDPResponse, content: SearchResponse): void => {
-    const result = {
-      hardware: content.dibHardwareStructure.data,
-      serviceFamilies: content.dibSupportedServiceFamilyStructure.data,
-      manufactorerData: {}
-    };
-    if (result.hardware.DeviceMACAddress) {
-      this.scanResults.set(result.hardware.DeviceMACAddress, result);
-      this.requestServerDescription(content);
-      TRACE.info("Found device and added to result!");
-    } else {
-      TRACE.warn("Search Response contains hardware without Mac Address: This result will be ignored!");
-    }
-  };
-
-  onDescriptionResponse = (request: UDPRequest, response: UDPResponse, content: DescriptionResponse): void => {
-    request.log.debug("Handling DescriptionResponse");
-
-    const macAddress = content.dibHardwareStructure.data.DeviceMACAddress;
-    if (macAddress) {
-      const scanResult = this.scanResults.get(macAddress);
-      if (scanResult) {
-        TRACE.info("Updating scan result with description response information.");
-        scanResult.manufactorerData = content.dibManufactorerData.data;
-      } else {
-        throw new Error(`MacAddress '${macAddress}' not found in existing scan result`);
-      }
-    } else {
-      TRACE.warn("Description Response contains hardware without Mac Address: This result will be ignored!");
-    }
-  };
-
   /**
    * The discory flow is implemented like:
    * client             server
@@ -141,6 +106,8 @@ export default class IPScanner {
     });
   }
 
+  // TODO: Add function to search for a device by config, e.g. MAC Address?
+
   get results(): IPScanResult[] {
     const results: IPScanResult[] = [...this.scanResults.values()];
     return results;
@@ -165,7 +132,7 @@ export default class IPScanner {
    * is that the server may support connections to multiple KNX Subnetworks.
    *
    */
-  async requestServerDescription(searchResponse: SearchResponse): Promise<void> {
+  private async requestServerDescription(searchResponse: SearchResponse): Promise<void> {
     if (!searchResponse.hpaiStructure.data.IPAddress || !searchResponse.hpaiStructure.data.Port) {
       throw new Error(
         `Can't request description via TCPDevice, because the hpaiStructure of the searchResponse doesn#t provide IPAddress and Port`
@@ -194,4 +161,37 @@ export default class IPScanner {
     //   friendlyName: "SMARTHOMEKNX.DE"
     // });
   }
+
+  private onSearchResponse = (request: UDPRequest, response: UDPResponse, content: SearchResponse): void => {
+    const result = {
+      hpai: content.hpaiStructure.data,
+      hardware: content.dibHardwareStructure.data,
+      serviceFamilies: content.dibSupportedServiceFamilyStructure.data,
+      manufactorerData: {}
+    };
+    if (result.hardware.DeviceMACAddress) {
+      this.scanResults.set(result.hardware.DeviceMACAddress, result);
+      this.requestServerDescription(content);
+      TRACE.info("Found device and added to result!");
+    } else {
+      TRACE.warn("Search Response contains hardware without Mac Address: This result will be ignored!");
+    }
+  };
+
+  private onDescriptionResponse = (request: UDPRequest, response: UDPResponse, content: DescriptionResponse): void => {
+    request.log.debug("Handling DescriptionResponse");
+
+    const macAddress = content.dibHardwareStructure.data.DeviceMACAddress;
+    if (macAddress) {
+      const scanResult = this.scanResults.get(macAddress);
+      if (scanResult) {
+        TRACE.info("Updating scan result with description response information.");
+        scanResult.manufactorerData = content.dibManufactorerData.data;
+      } else {
+        throw new Error(`MacAddress '${macAddress}' not found in existing scan result`);
+      }
+    } else {
+      TRACE.warn("Description Response contains hardware without Mac Address: This result will be ignored!");
+    }
+  };
 }

@@ -12,6 +12,7 @@ import { SupportedServiceFamilyDIBData } from "../messages/structures/DIBSupport
 import { DIBManufactorerData } from "../messages/structures/DIBManufactorerDataStructure";
 import { Protocol } from "../utils/types";
 import ConnectionResponse from "../messages/ConnectionResponse";
+import { IPScanResult } from "./IPScanner";
 
 const DEVICE_TYPE = "IPConnector";
 const CONNECTION_TIMEOUT = 10000;
@@ -68,6 +69,33 @@ export default class IPConnector {
     // add callbacks:
     this.udpDevice.connectionResponseCallback = this.onConnectionResponse;
   }
+
+  // setRemote(scanResult: IPScanResult) {
+
+  // }
+
+  // static build(id: string, scanResult: IPScanResult) {
+  //   // validate if scan result is complete:
+  //   if (!scanResult.hardware.DeviceFriendlyName) {
+  //     throw new Error("Can't build IPConnector from Scan result. Missing required value of 'DeviceFriendlyName'");
+  //   }
+
+  //   if (!scanResult.hardware.KNXIndividualAddress) {
+  //     throw new Error("Can't build IPConnector from Scan result. Missing required value of 'KNXIndividualAddress'");
+  //   }
+
+  //   const settings: IPConnectorSettings = {
+  //     friendlyName: scanResult.hardware.DeviceFriendlyName,
+  //     knxIndividualAddress: scanResult.hardware.KNXIndividualAddress,
+  //     knxSerialNumber: scanResult.hardware.DeviceKNXSerialNumber,
+  //     projectInstallationID: scanResult.hardware.ProjectInstallationIdentifier,
+  //     macAddress: scanResult.hardware.DeviceMACAddress,
+  //     type: scanResult.
+
+  //   };
+
+  //   return new IPConnector(id, settings);
+  // }
 
   async powerOn(): Promise<void> {
     await this.udpDevice.startListener();

@@ -6,7 +6,7 @@ const STRUCTURE_NAME = "Host Protocol Address Information (HPAI)";
 const STRUCTURE_LENGTH = 0x08;
 const STRUCTURE_KEY = "HPAI";
 
-interface HPAIData extends StructureJsonObject {
+export interface HPAIData extends StructureJsonObject {
   StructureLength: number;
   HostProtocolCode: knxSpec.HOST_PROTOCOL_CODES;
   IPAddress: string;
