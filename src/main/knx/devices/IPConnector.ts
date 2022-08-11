@@ -26,7 +26,7 @@ export interface IPConnectorSettings extends DeviceSettings {
     readonly ipAddress: string;
     readonly port: number;
   };
-  protocoll: Protocol;
+  protocol: Protocol;
 }
 
 // export interface IPScanResult {

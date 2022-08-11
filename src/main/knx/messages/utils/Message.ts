@@ -2,7 +2,6 @@ import * as knxSpec from "../structures/KNX_SPECIFICATION";
 import { CONVERTER_LOG } from "../../utils/logging";
 import Structure from "../structures/base/Structure";
 import HeaderStructure from "../structures/HeaderStructure";
-import HPAIStructure from "../structures/HPAIStructure";
 import { JsonObject } from "../structures/base/StructureField";
 import yaml from "js-yaml";
 

@@ -3,7 +3,7 @@ import { promisify } from "util";
 import { Logger } from "winston";
 import { logBuffer, STATUS_LOG, TRACE } from "../../utils/logging";
 import { createUDBDeviceLogger, UDPMessage } from "../../utils/UDPDeviceLogger";
-import { SERVICE_TYPE } from "../../messages/structures/KNX_SPECIFICATION";
+import { HOST_PROTOCOL_CODES, SERVICE_TYPE } from "../../messages/structures/KNX_SPECIFICATION";
 import UDPMessageHandler from "../../messages/utils/UDPMessageHandler";
 import Device, { DeviceSettings } from "./Device";
 import SearchRequest from "../../messages/SearchRequest";
@@ -45,7 +45,7 @@ export type ConnectionResponseCallback = (
   content: ConnectionResponse
 ) => void;
 
-export default class UDBDevice<Type extends UDPDeviceSettings> extends Device<UDPDeviceSettings> {
+export default class UDPDevice<Type extends UDPDeviceSettings> extends Device<UDPDeviceSettings> {
   readonly udpLogger: Logger;
   readonly udpSocket: dgram.Socket;
   readonly messageHandler: UDPMessageHandler;
@@ -73,6 +73,7 @@ export default class UDBDevice<Type extends UDPDeviceSettings> extends Device<UD
   async startListener(): Promise<void> {
     this.messageHandler.addTypedCallback(SERVICE_TYPE.SEARCH_RESPONSE, this.onSearchResponse);
     this.messageHandler.addTypedCallback(SERVICE_TYPE.DESCRIPTION_RESPONSE, this.onDescriptionResponse);
+    this.messageHandler.addTypedCallback(SERVICE_TYPE.CONNECT_RESPONSE, this.onConnectionResponse);
 
     this.udpSocket.on("listening", () => {
       STATUS_LOG.info(
@@ -133,8 +134,9 @@ export default class UDBDevice<Type extends UDPDeviceSettings> extends Device<UD
   async triggerConnectionRequest(remote: RemoteInfo): Promise<void> {
     const message: ConnectionRequest = new ConnectionRequest();
     message.setDefaultValues();
-    message.hpaiEndpointStructure.data.IPAddress = this.settings.ipAddress;
-    message.hpaiEndpointStructure.data.Port = this.settings.port;
+    message.hpaiEndpointStructure.data.IPAddress = remote.ipAddress;
+    message.hpaiEndpointStructure.data.Port = remote.port;
+    message.hpaiEndpointStructure.data.HostProtocolCode = HOST_PROTOCOL_CODES.IPV4_UDP;
     message.hpaiControlStructure.data.IPAddress = this.settings.ipAddress;
     message.hpaiControlStructure.data.Port = this.settings.port;
     // don't change the port, seems 3671 is default from KNX: message.hpaiStructure.data.Port = this.settings.ipPort;

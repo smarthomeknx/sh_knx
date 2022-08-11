@@ -103,6 +103,8 @@ export const NUMBER_FIELDS = {
   ServiceFamilyVersion: new NumberField({ name: "ServiceFamilyVersion", maxLength: 1 }),
 
   ConnectionTypeCode: new NumberField({ name: "ConnectionTypeCode", maxLength: 1 }),
+  CommunicationChannelID: new NumberField({ name: "ConnectionChannelID", maxLength: 1 }),
+  Status: new NumberField({ name: "Status", maxLength: 1 }),
 
   KNXLayer: new NumberField({ name: "KNXLayer", maxLength: 1 }),
 

@@ -3,11 +3,11 @@ import * as constants from "../../utils/constants";
 import Field, { DOT_SEPERATED_BYTES_FIEDS, FieldValue, NUMBER_FIELDS, STRING_FIELDS } from "./base/Field";
 import JSONStructure, { StructureJsonObject } from "./base/JSONStructure";
 
-const STRUCTURE_NAME = "ConnectionResponseInformation (CRD)";
+const STRUCTURE_NAME = "ConnectionResponseData (CRD)";
 //const STRUCTURE_LENGTH = // VARIABLE 0x36; //structure length (CRD)
-const STRUCTURE_KEY = "ConnectionResponseInformationCRD";
+const STRUCTURE_KEY = "ConnectionResponseDataCRD";
 
-interface ConnectionResponseInformationData extends StructureJsonObject {
+interface ConnectionResponseData extends StructureJsonObject {
   StructureLength: number;
   // TDODO DescriptionTypeCode: knxSpec.DESCRIPTION_TYPE_CODE;
   KNXMedium: knxSpec.KNX_MEDIUM_CODE;
@@ -20,10 +20,10 @@ interface ConnectionResponseInformationData extends StructureJsonObject {
   DeviceFriendlyName: string;
 }
 
-type ConnectionResponseInformationDataFieldConfigs = {
-  [id in keyof ConnectionResponseInformationData]: Field<FieldValue>;
+type ConnectionResponseDataFieldConfigs = {
+  [id in keyof ConnectionResponseData]: Field<FieldValue>;
 };
-const CONFIG: ConnectionResponseInformationDataFieldConfigs = {
+const CONFIG: ConnectionResponseDataFieldConfigs = {
   StructureLength: NUMBER_FIELDS.StructureLength,
   DescriptionTypeCode: NUMBER_FIELDS.DescriptionTypeCode,
   KNXMedium: NUMBER_FIELDS.KNXMedium,
@@ -35,16 +35,16 @@ const CONFIG: ConnectionResponseInformationDataFieldConfigs = {
   DeviceMACAddress: DOT_SEPERATED_BYTES_FIEDS.DeviceMACAddress,
   DeviceFriendlyName: STRING_FIELDS.DeviceFriendlyName
 };
-export default class ConnectionResponseInformationStructure extends JSONStructure<ConnectionResponseInformationData> {
+export default class ConnectionResponseDataStructure extends JSONStructure<ConnectionResponseData> {
   constructor() {
     super(STRUCTURE_NAME, STRUCTURE_KEY, CONFIG);
   }
 
   setDefaultValues(): void {
     // TODO this.data.StructureLength = STRUCTURE_LENGTH;
-    this.data.DescriptionTypeCode = knxSpec.DESCRIPTION_TYPE_CODE.DEVICE_INFO;
-    this.data.KNXMedium = knxSpec.KNX_MEDIUM_CODE.TP1;
-    this.data.DeviceStatus = knxSpec.KNX_DEVICE_STATUS.PROG_MODE_OFF;
-    this.data.DeviceRoutingMulticastAddress = constants.MULTICAST_IP_ADDRESS;
+    //this.data.DescriptionTypeCode = knxSpec.DESCRIPTION_TYPE_CODE.DEVICE_INFO;
+    //this.data.KNXMedium = knxSpec.KNX_MEDIUM_CODE.TP1;
+    //this.data.DeviceStatus = knxSpec.KNX_DEVICE_STATUS.PROG_MODE_OFF;
+    //this.data.DeviceRoutingMulticastAddress = constants.MULTICAST_IP_ADDRESS;
   }
 }

@@ -18,8 +18,10 @@ import StructureField, {
 
 //const FIELD_NUMBER_SEPARATOR = "_";
 
+//export type StructureJsonObject = JsonObject;
+
 export interface StructureJsonObject extends JsonObject {
-  StructureLength: number;
+  StructureLength?: number;
 }
 
 const createStructureField = (id: string, field: Field<FieldValue>): StructureField => {
@@ -249,7 +251,9 @@ export default abstract class JSONStructure<Type extends StructureJsonObject> ex
   fromBuffer(source: Buffer): Partial<Type> {
     this.data = {};
     const jsonObject = { root: {} };
-    parse(this.id, this.config, source, jsonObject, "root");
+    if (source.byteLength !== 0) {
+      parse(this.id, this.config, source, jsonObject, "root");
+    }
     this.data = jsonObject.root;
     return this.data;
   }
