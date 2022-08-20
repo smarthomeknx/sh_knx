@@ -25,7 +25,7 @@ export default class MessageHandler {
   readonly eventEmitter: EventEmitter;
 
   constructor(readonly tcpSocket: net.Socket, readonly receivingDevice: TCPDevice<TCPDeviceSettings>) {
-    tcpSocket.on("message", this.tcpHandleIncomingMessage);
+    tcpSocket.on("data", this.tcpHandleIncomingMessage);
     //udpSocket.on("message", this.udpHandleIncomingMessage);
     this.eventEmitter = new EventEmitter().setMaxListeners(1); // one listener per Event is supported in here by know
   }

@@ -109,7 +109,7 @@ export enum TUNNELING_LAYER {
   TUNNEL_BUSMONITOR = 0x80
 }
 
-const enum RESPONSE_CODE {
+export const enum RESPONSE_CODE {
   NO_ERROR = 0x00, // E_NO_ERROR - The connection was established succesfully
   E_HOST_PROTOCOL_TYPE = 0x01,
   E_VERSION_NOT_SUPPORTED = 0x02,
@@ -124,7 +124,7 @@ const enum RESPONSE_CODE {
   E_TUNNELING_LAYER = 0x29
 }
 
-const MESSAGE_CODE = {
+export const MESSAGE_CODE = {
   "L_Raw.req": 0x10,
   "L_Data.req": 0x11,
   "L_Poll_Data.req": 0x13,

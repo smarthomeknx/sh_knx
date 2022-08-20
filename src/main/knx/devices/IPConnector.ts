@@ -13,9 +13,25 @@ import { DIBManufactorerData } from "../messages/structures/DIBManufactorerDataS
 import { Protocol } from "../utils/types";
 import ConnectionResponse from "../messages/ConnectionResponse";
 import { IPScanResult } from "./IPScanner";
+import { RESPONSE_CODE } from "../messages/structures/KNX_SPECIFICATION";
+import TCPResponse from "../messages/TCPResponse";
+import TCPRequest from "../messages/TCPRequest";
 
 const DEVICE_TYPE = "IPConnector";
 const CONNECTION_TIMEOUT = 10000;
+
+const ERROR_DESCRIPTIONS: Map<number, string> = new Map([
+  [RESPONSE_CODE.NO_ERROR, "The connection is established successfully."],
+  [RESPONSE_CODE.E_CONNECTION_TYPE, "The KNXnet/IP Server device does not support the requested connection type."],
+  [
+    RESPONSE_CODE.E_CONNECTION_OPTION,
+    "The KNXnet/IP Server device does not support one or more requested connection options."
+  ],
+  [
+    RESPONSE_CODE.E_NO_MORE_CONNECTIONS,
+    "The KNXnet/IP Server device cannot accept the new data connection because its maximum amount of concurrent connections is already used."
+  ]
+]);
 
 export interface IPConnectorSettings extends DeviceSettings {
   readonly local: {
@@ -45,29 +61,30 @@ export default class IPConnector {
   //searchResponses: SearchResponse[] = [];
   //scanResults: Map<string, IPScanResult> = new Map(); //IPScanResult[] = [];
   //tcpServer: TCPDevice<TCPDeviceSettings>;
-  udpDevice: UDPDevice<UDPDeviceSettings>;
-  //tcpDevice: TCPDevice<TCPDeviceSettings>;
+  //udpDevice: UDPDevice<UDPDeviceSettings>;
+  tcpDevice: TCPDevice<TCPDeviceSettings>;
 
   constructor(id: string, settings: IPConnectorSettings) {
     this.id = id;
     this.settings = settings;
 
-    const udpSettings = {
+    const tcpSettings = {
       ipAddress: this.settings.local.ipAddress,
       port: this.settings.local.port,
-      friendlyName: this.settings.friendlyName + "_UDP",
+      friendlyName: this.settings.friendlyName + "_TCP",
       knxIndividualAddress: this.settings.knxIndividualAddress,
       knxSerialNumber: this.settings.knxSerialNumber,
       macAddress: this.settings.macAddress,
       projectInstallationID: this.settings.projectInstallationID,
-      type: DEVICE_TYPE + "_UDP"
+      type: DEVICE_TYPE + "_TCP"
     };
 
     // create UDPDevice
-    this.udpDevice = new UDPDevice(this.id + "_UDP", udpSettings);
+    this.tcpDevice = new TCPDevice(this.id + "_TCP", tcpSettings);
+    //this.tcpDevice.listen();
 
     // add callbacks:
-    this.udpDevice.connectionResponseCallback = this.onConnectionResponse;
+    this.tcpDevice.connectionResponseCallback = this.onConnectionResponse;
   }
 
   // setRemote(scanResult: IPScanResult) {
@@ -98,37 +115,41 @@ export default class IPConnector {
   // }
 
   async powerOn(): Promise<void> {
-    await this.udpDevice.startListener();
+    //await this.tcpDevice.startListener();
   }
 
   async powerOff(): Promise<void> {
-    await this.udpDevice.stopListener();
+    //await this.tcpDevice.stopListener();
   }
 
-  onConnectionResponse = (request: UDPRequest, response: UDPResponse, content: ConnectionResponse): void => {
+  onConnectionResponse = (request: TCPRequest, response: TCPResponse, content: ConnectionResponse): void => {
     request.log.debug("Handle ConnectionResponse");
-    // TODO: Check if IPScanner is done and now some other IPDevice should take over with the concrete connect
+
+    const connectionStatus = content.connectionResponseBaseStructure.data.Status;
+    if (connectionStatus === undefined) {
+      throw new Error("No connection status received!");
+    } else if (connectionStatus === RESPONSE_CODE.NO_ERROR) {
+      request.log.info("Connection established successfully");
+    } else {
+      request.log.error(this.getErrorDescription(connectionStatus));
+    }
   };
 
+  getErrorDescription(code: number): string {
+    const description = ERROR_DESCRIPTIONS.get(code);
+    return description || `Unknown error:  ${code}`;
+  }
+
   /**
-   * The discory flow is implemented like:
+   * The connection flow is implemented like:
    * client             server
-   *   SEARCH_REQUEST ->
-   *      <- SEARCH_RESPONSE
+   *   CONNECTION_REQUEST ->
+   *      <- CONNECTION_RESPONSE
    *
-   * The client waits until the response is received or for SEARCH_TIMEOUT
-   * After that any response should be ignored unless a new SEARCH_REQUEST
-   * is triggered.
-   *
-   * SEARCH_REQUESTS from other clients should be ignored
-   *
-   * The search is done via UDPDevice and a mutlicast message is sent to the
-   * KNX default address and port for this reasons. Once a response arrives
-   * an new KNX device (e.g. IPRouter) is found.
    *
    */
   async connect(timeout?: number): Promise<void> {
-    await this.udpDevice.triggerConnectionRequest(this.settings.remote);
+    await this.tcpDevice.triggerConnectionRequest(this.settings.remote);
 
     return new Promise((resolve) => {
       // TODO: resolve immediatly once connection is established

@@ -90,12 +90,12 @@ const tcpDeviceLogConsoleFormat = printf(({ level, message, label, timestamp, tc
         directionPart += " TO ";
         break;
     }
-    return `${timestamp} ${level} - ${device.friendlyName || "UNKNOWN"}(${device.local?.ipAddress} ${
-      device.local?.port
-    }) -  ${tcpMsg.serviceType} ${directionPart} ${remoteIPAddressPart}:${remoteIPPortPart}: ${message}`;
+    return `${timestamp} ${level} - ${device.friendlyName || "UNKNOWN"}(${device.ipAddress} ${device.port}) -  ${
+      tcpMsg.serviceType
+    } ${directionPart} ${remoteIPAddressPart}:${remoteIPPortPart}: ${message}`;
   } else {
-    return `${timestamp} ${level} - ${device.friendlyName || "UNKNOWN"}(${device.local?.ipAddress} ${
-      device.local?.port
+    return `${timestamp} ${level} - ${device.friendlyName || "UNKNOWN"}(${device.ipAddress} ${
+      device.port
     }): ${message}`;
   }
 });

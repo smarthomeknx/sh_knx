@@ -21,7 +21,7 @@ export default class ConnectionRequest extends Message {
   setDefaultValues(): void {
     super.setDefaultValues();
     this.headerStructure.data.ServiceType = MESSAGE_TYPE;
-    this.hpaiControlStructure.data.HostProtocolCode = knxSpec.HOST_PROTOCOL_CODES.IPV4_UDP;
+    //this.hpaiControlStructure.data.HostProtocolCode = knxSpec.HOST_PROTOCOL_CODES.IPV4_UDP;
     this.connectionRequestInfoStructure.setDefaultValues4TunnelConnection();
   }
 }
